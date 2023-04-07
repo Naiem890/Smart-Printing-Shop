@@ -12,33 +12,21 @@ cd Smart-Printing-Shop
 ```
 git checkout smart-printer-server
 ```
-
 ### Create a .env file in root of the project and copy below configuration
-
 ```
 PORT=3000
-
 DB_USERNAME=YOUR_ORACLE_DB_USER_NAME
-
 DB_PASS=YOUR_ORACLE_DB_PASS
 ```
-
 Replace `YOUR_ORACLE_DB_USER_NAME` & `YOUR_ORACLE_DB_PASS` with your Oracle 11g Database User Name and Password
 
-&nbsp;
 
 ### Now install dependency and start the server
-
 ```
 npm install
-
 npm run dev
 ```
-
-&nbsp;
-
 ### **Some other prerequisite to run this project**
-
 - Node js >= 16
 - Npm >= 8
 - Oracle 11g express edition
