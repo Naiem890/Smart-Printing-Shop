@@ -45,20 +45,52 @@ app.get("/api/shops", async (req, res, next) => {
     );
     res.send(result);
   } else {
-    const result = await query(
-      `SELECT distinct(shop_id), shop_name, SHOP_LOCATION_DISTRICT, SHOP_LOCATION_CITY, SHOP_LOCATION_AREA, SHOP_ACTIVE_HOURS
-		FROM provides 
-		JOIN service using(service_ID)
-		JOIN shop using(shop_id)
-		where UPPER(shop_location_district) like '%${district}%'
-		and UPPER(shop_location_city) like '%${city}%'
-		and UPPER(shop_location_area) like '%${area}%'
-		`
-    );
+    const result = await query(`
+      SELECT DISTINCT shop.shop_id, shop_name, SHOP_LOCATION_DISTRICT, SHOP_LOCATION_CITY, SHOP_LOCATION_AREA, SHOP_ACTIVE_HOURS
+      FROM shop
+      LEFT JOIN provides ON shop.shop_id = provides.shop_id
+      LEFT JOIN service ON provides.service_id = service.service_id
+      WHERE UPPER(shop_location_district) LIKE '%${district}%'
+        AND UPPER(shop_location_city) LIKE '%${city}%'
+        AND UPPER(shop_location_area) LIKE '%${area}%'
+    `);
+
     res.send(result);
   }
 
   // res.send([]);
+});
+
+app.post("/api/shop/create", async (req, res, next) => {
+  const { name, district, city, area, activeHour } = req.body;
+
+  var currentTime = new Date().getTime();
+  var shop_id = "A" + currentTime.toString().slice(-3);
+  console.log(shop_id);
+
+  const result = await query(
+    `INSERT INTO shop (shop_id, shop_name, shop_location_district, shop_location_city, shop_location_area, shop_active_hours) VALUES ('${shop_id}', '${name}', '${district}', '${city}', '${area}', '${activeHour}')`
+  );
+
+  res.status(200).send({ shopCreated: true });
+});
+
+app.put("/api/shop/update", async (req, res, next) => {
+  const { shop_id, name, district, city, area, activeHour } = req.body;
+
+  console.log(req.body);
+
+  const result = await query(
+    `UPDATE shop
+    SET shop_name = '${name}',
+        shop_location_district = '${district}',
+        shop_location_city = '${city}',
+        shop_location_area = '${area}',
+        shop_active_hours = '${activeHour}'
+    WHERE shop_id = '${shop_id}'`
+  );
+
+  res.status(200).send({ shopUpdated: true });
 });
 
 app.get("/api/shops/:shopId", async (req, res, next) => {
@@ -86,6 +118,38 @@ app.get("/api/shops/:shopId", async (req, res, next) => {
   } else {
     res.send({});
   }
+});
+
+app.delete("/api/shops/:shopId", async (req, res, next) => {
+  const { shopId } = req.params;
+  console.log("Shopid", shopId);
+
+  const services = await query(
+    `SELECT SERVICE_ID
+	  FROM provides
+	  WHERE shop_id = '${shopId}'
+	  `
+  );
+
+  await query(
+    `Delete 
+	  FROM service
+    WHERE service_id IN ('${services.map((s) => s.SERVICE_ID).join("', '")}')`
+  );
+
+  await query(
+    `Delete 
+	  FROM provides
+    WHERE shop_id = '${shopId}'`
+  );
+
+  await query(
+    `Delete 
+	  FROM shop
+    WHERE shop_id = '${shopId}'`
+  );
+
+  res.status(200).send({ shopDeleted: true });
 });
 
 app.post("/api/signup/customer", async (req, res, next) => {
