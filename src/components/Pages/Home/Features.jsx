@@ -9,8 +9,12 @@ export default function Features() {
             Designed for business teams like yours
           </h2>
           <p class="text-gray-500 sm:text-xl dark:text-gray-400">
-            Here at Flowbite we focus on markets where technology, innovation,
-            and capital can unlock long-term value and drive economic growth.
+            PrintEase is a cutting-edge smart printing software designed to
+            revolutionize the way you print. With PrintEase, you can
+            effortlessly send your documents to any print shop and conveniently
+            receive your printing orders online, right from the comfort of your
+            nearby location. Say goodbye to traditional hassles and hello to a
+            streamlined printing process.
           </p>
         </div>
         <div class="space-y-8 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-12 md:space-y-0">
@@ -29,11 +33,15 @@ export default function Features() {
                 ></path>
               </svg>
             </div>
-            <h3 class="mb-2 text-xl font-bold dark:text-white">Marketing</h3>
+            <h3 class="mb-2 text-xl font-bold dark:text-white">
+              Seamless Document Sending:
+            </h3>
             <p class="text-gray-500 dark:text-gray-400">
-              Plan it, create it, launch it. Collaborate seamlessly with all the
-              organization and hit your marketing goals every month with our
-              marketing plan.
+              PrintEase makes document sending a breeze. Simply upload your
+              files through our user-friendly interface, select your desired
+              print specifications, and choose the nearest print shop that suits
+              your needs. With just a few clicks, your printing order is on its
+              way.
             </p>
           </div>
           <div>
@@ -47,10 +55,15 @@ export default function Features() {
                 <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"></path>
               </svg>
             </div>
-            <h3 class="mb-2 text-xl font-bold dark:text-white">Legal</h3>
+            <h3 class="mb-2 text-xl font-bold dark:text-white">
+              Efficient Online Ordering:
+            </h3>
             <p class="text-gray-500 dark:text-gray-400">
-              Protect your organization, devices and stay compliant with our
-              structured workflows and custom permissions made for you.
+              No more waiting in long queues or making time-consuming trips to
+              print shops. With PrintEase, you can place your printing orders
+              online and track their progress in real-time. Our intuitive
+              platform ensures that you stay updated at every step of the
+              process, from order confirmation to completion.
             </p>
           </div>
           <div>
@@ -70,11 +83,14 @@ export default function Features() {
               </svg>
             </div>
             <h3 class="mb-2 text-xl font-bold dark:text-white">
-              Business Automation
+              Flexible Collection Options:
             </h3>
             <p class="text-gray-500 dark:text-gray-400">
-              Auto-assign tasks, send Slack messages, and much more. Now power
-              up with hundreds of new templates to help you get started.
+              PrintEase offers flexible collection options tailored to your
+              convenience. Once your printing order is ready, you can choose to
+              collect it physically from the print shop or opt for hassle-free
+              delivery to your doorstep. It's all about providing you with a
+              seamless and personalized experience.
             </p>
           </div>
           <div>
@@ -93,10 +109,15 @@ export default function Features() {
                 ></path>
               </svg>
             </div>
-            <h3 class="mb-2 text-xl font-bold dark:text-white">Finance</h3>
+            <h3 class="mb-2 text-xl font-bold dark:text-white">
+              Wide Network of Partnered Print Shops:
+            </h3>
             <p class="text-gray-500 dark:text-gray-400">
-              Audit-proof software built for critical financial operations like
-              month-end close and quarterly budgeting.
+              PrintEase has partnered with a vast network of trusted print
+              shops, ensuring that you have numerous options to choose from.
+              Whether you need professional-grade printing, high-quality color
+              copies, or specialized services, our network of print shops has
+              got you covered.
             </p>
           </div>
           <div>
@@ -111,11 +132,13 @@ export default function Features() {
               </svg>
             </div>
             <h3 class="mb-2 text-xl font-bold dark:text-white">
-              Enterprise Design
+              Secure and Confidential:
             </h3>
             <p class="text-gray-500 dark:text-gray-400">
-              Craft beautiful, delightful experiences for both marketing and
-              product with real cross-company collaboration.
+              At PrintEase, we prioritize the security and confidentiality of
+              your documents. Rest assured that your files are protected with
+              advanced encryption and secure data transmission protocols. Your
+              privacy is our utmost priority.
             </p>
           </div>
           <div>
@@ -133,10 +156,13 @@ export default function Features() {
                 ></path>
               </svg>
             </div>
-            <h3 class="mb-2 text-xl font-bold dark:text-white">Operations</h3>
+            <h3 class="mb-2 text-xl font-bold dark:text-white">
+              Experience the Future of Printing with PrintEase:
+            </h3>
             <p class="text-gray-500 dark:text-gray-400">
-              Keep your company’s lights on with customizable, iterative, and
-              structured workflows built for all efficient teams and individual.
+              Experience a new era of convenience and efficiency in printing.
+              PrintEase simplifies the printing process, allowing you to send
+              documents to any shop and collect your orders online. Discover the
             </p>
           </div>
         </div>

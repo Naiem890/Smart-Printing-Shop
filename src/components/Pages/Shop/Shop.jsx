@@ -5,11 +5,13 @@ import {
   MapPinIcon,
   StarIcon,
 } from "@heroicons/react/24/solid";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 export default function Shop() {
   const { shopId } = useParams();
   const [shop, setShop] = useState({});
+  const [selectedService, setSelectedService] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetch(`http://localhost:3000/api/shops/${shopId}`)
@@ -60,23 +62,68 @@ export default function Shop() {
                 <h3 className="text-xl mt-8 font-semibold leading-tight">
                   Services
                 </h3>
-                <ul className="mt-5 grid grid-cols-2 gap-10">
+                <ul
+                  onChange={(e) => {
+                    console.log(e.target.value);
+                    setSelectedService(e.target.value);
+                  }}
+                  className="mt-5 grid grid-cols-2 gap-4"
+                >
                   {shop.SHOP_SERVICES?.map((service) => (
-                    <li className="shadow mb-6 font-mono">
-                      <div className="p-6">
-                        <h3 className="text-lg font-bold">
-                          {service.SERVICE_NAME}
-                        </h3>
-                        <p className="text-gray-500">
-                          Per unit charge: {service.SERVICE_CHARGE_PER_UNIT}
-                        </p>
-                        <p className="text-gray-500">
-                          ETA: {service.ESTIMATED_TIME_IN_MIN_REQUIRED} Hours
-                        </p>
-                      </div>
+                    <li key={service.SERVICE_ID}>
+                      <input
+                        type="radio"
+                        id={service.SERVICE_NAME}
+                        name="hosting"
+                        value={service.SERVICE_ID}
+                        class="hidden peer"
+                        required
+                      />
+                      <label
+                        for={service.SERVICE_NAME}
+                        class="inline-flex items-center justify-between w-full p-5 text-gray-500 bg-white border border-gray-200 rounded-lg cursor-pointer dark:hover:text-gray-300 dark:border-gray-700 dark:peer-checked:text-blue-500 peer-checked:border-blue-600 peer-checked:text-blue-600 hover:text-gray-600 hover:shadow-xl transition-all dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700"
+                      >
+                        <div class="block">
+                          <div class="w-full text-xl mb-2 font-semibold">
+                            {service.SERVICE_NAME}
+                          </div>
+                          <div class="w-full text-gray-500 font-mono">
+                            Per unit charge: {service.SERVICE_CHARGE_PER_UNIT}
+                            BDT
+                          </div>
+                          <div class="w-full text-gray-500 font-mono">
+                            ETA: {service.ESTIMATED_TIME_IN_MIN_REQUIRED}
+                            Min/Unit
+                          </div>
+                        </div>
+                      </label>
                     </li>
                   ))}
                 </ul>
+                <div className="mt-10">
+                  <button
+                    disabled={!selectedService}
+                    onClick={() =>
+                      navigate(`/order-service/${selectedService}`)
+                    }
+                    class={`inline-flex items-center justify-center px-5 py-3 mr-3 text-base font-medium text-center text-white rounded-lg 
+                    bg-blue-700 hover:bg-primary-800 focus:ring-4 disabled:bg-slate-400 disabled:cursor-not-allowed focus:ring-primary-300 dark:focus:ring-primary-900`}
+                  >
+                    Order Service
+                    <svg
+                      class="w-5 h-5 ml-2 -mr-1"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
+                        clip-rule="evenodd"
+                      ></path>
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>
           </div>

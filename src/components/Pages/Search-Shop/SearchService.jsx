@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import InstructionCard from "./InstructionCard";
 import ShopCard from "./ShopCard";
-import { useRef } from "react";
 
 const SearchService = () => {
   const [shops, setShops] = useState([]);
@@ -15,10 +14,10 @@ const SearchService = () => {
   useEffect(() => {
     let queryString = `?`;
 
-    if (district) queryString += `district=${district}`;
-    if (city) queryString += `city=${city}`;
-    if (area) queryString += `area=${area}`;
-    if (searchBy) queryString += `search_by_service=${searchBy}`;
+    if (district) queryString += `district=${district}&`;
+    if (city) queryString += `city=${city}&`;
+    if (area) queryString += `area=${area}&`;
+    if (searchBy) queryString += `search_by_service=${searchBy}&`;
 
     fetch(`http://localhost:3000/api/shops${queryString}`)
       .then((res) => res.json())

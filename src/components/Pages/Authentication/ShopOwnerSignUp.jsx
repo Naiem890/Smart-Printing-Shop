@@ -1,31 +1,36 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
-export default function Signup() {
+export default function ShopOwnerSignUp() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rePassword, setRePassword] = useState("");
 
+  const navigate = useNavigate();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const customer = { name, phone, email, password };
-    console.log(customer);
+    const shopOwner = { name, phone, email, password };
+    console.log(shopOwner);
 
+    navigate("/shop-owner/create-shop");
 
-    const response = await fetch("http://localhost:3000/api/auth/signup/customer", {
-      method: "POST", // or 'PUT'
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(customer),
-    });
+    // const response = await fetch(
+    //   "http://localhost:3000/api/auth/signup/shop-owner",
+    //   {
+    //     method: "POST", // or 'PUT'
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //     },
+    //     body: JSON.stringify(customer),
+    //   }
+    // );
 
-    const result = await response.json();
-    console.log("Success:", result);
-
+    // const result = await response.json();
+    // console.log("Success:", result);
   };
 
   return (
@@ -37,10 +42,10 @@ export default function Signup() {
         <div class="w-full max-w-xl p-6 space-y-8 sm:p-8 bg-white rounded-lg dark:bg-gray-800">
           <div className="flex gap-6">
             <h2 className="text-2xl font-bold text-gray-300 dark:text-white">
-              <Link to="/login">Login</Link>
+              <Link to="/shop-owner/login">Login</Link>
             </h2>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-              <Link to="/sign-up">Sign Up</Link>
+              <Link to="/shop-owner/sign-up">Sign Up</Link>
             </h2>
           </div>
           <form onSubmit={handleSubmit} class="mt-8 space-y-6">
