@@ -37,7 +37,7 @@ export default function EditShop() {
     const activeHour = e.target.activeHour.value;
 
     const shopData = {
-      student_id: shop.SHOP_ID,
+      shop_id: shop.SHOP_ID,
       name,
       district,
       city,
