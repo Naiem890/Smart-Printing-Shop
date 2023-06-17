@@ -3,8 +3,12 @@ const app = express();
 const cors = require("cors");
 const logger = require("morgan");
 const { query } = require("./services/dbService");
+const multer = require("multer");
+const OracleDB = require("oracledb");
 
 require("dotenv").config();
+
+const upload = multer({ storage: multer.memoryStorage() });
 
 const port = process.env.PORT || 3000;
 
@@ -27,70 +31,163 @@ app.get("/api/shops", async (req, res, next) => {
 
   console.log(req.query);
 
-  if (search_by_service) {
-    const result = await query(
-      `SELECT *
-		FROM provides 
-		JOIN service using(service_ID)
-		JOIN shop using(shop_id)
-		WHERE service_id IN (
-			SELECT service_id
-			FROM service
-			where UPPER(service_name) like '%${search_by_service}%'
-		)
-		and UPPER(shop_location_district) like '%${district}%'
-		and UPPER(shop_location_city) like '%${city}%'
-		and UPPER(shop_location_area) like '%${area}%'
-		`
-    );
-    res.send(result);
-  } else {
-    const result = await query(`
-      SELECT DISTINCT shop.shop_id, shop_name, SHOP_LOCATION_DISTRICT, SHOP_LOCATION_CITY, SHOP_LOCATION_AREA, SHOP_ACTIVE_HOURS
-      FROM shop
-      LEFT JOIN provides ON shop.shop_id = provides.shop_id
-      LEFT JOIN service ON provides.service_id = service.service_id
-      WHERE UPPER(shop_location_district) LIKE '%${district}%'
-        AND UPPER(shop_location_city) LIKE '%${city}%'
-        AND UPPER(shop_location_area) LIKE '%${area}%'
-    `);
+  let queryCondition = "";
+  let queryParameters = {};
 
-    res.send(result);
+  if (search_by_service) {
+    queryCondition = `service.service_id IN (
+      SELECT
+        service_id
+      FROM
+        service
+      WHERE
+        UPPER(service_name) LIKE :search_by_service
+    )`;
+    queryParameters.search_by_service = `%${search_by_service}%`;
+  } else {
+    queryCondition = "1 = 1"; // No filtering by service
   }
+
+  const queryString = `
+    SELECT
+      t.shop_id,
+      t.concatenated_services,
+      t.shop_name,
+      t.SHOP_LOCATION_DISTRICT,
+      t.SHOP_LOCATION_CITY,
+      t.SHOP_LOCATION_AREA,
+      t.SHOP_ACTIVE_HOURS,
+      s.SHOP_IMAGE
+    FROM (
+      SELECT
+        shop.shop_id,
+        LISTAGG(service.service_name, ', ') WITHIN GROUP (ORDER BY service.service_name) AS concatenated_services,
+        MIN(shop.shop_name) AS shop_name,
+        MIN(shop.SHOP_LOCATION_DISTRICT) AS SHOP_LOCATION_DISTRICT,
+        MIN(shop.SHOP_LOCATION_CITY) AS SHOP_LOCATION_CITY,
+        MIN(shop.SHOP_LOCATION_AREA) AS SHOP_LOCATION_AREA,
+        MIN(shop.SHOP_ACTIVE_HOURS) AS SHOP_ACTIVE_HOURS
+      FROM
+        shop
+        LEFT JOIN provides ON shop.shop_id = provides.shop_id
+        LEFT JOIN service ON provides.service_id = service.service_id
+      WHERE
+        ${queryCondition}
+        AND UPPER(shop.SHOP_LOCATION_DISTRICT) LIKE :district
+        AND UPPER(shop.SHOP_LOCATION_CITY) LIKE :city
+        AND UPPER(shop.SHOP_LOCATION_AREA) LIKE :area
+      GROUP BY
+        shop.shop_id
+    ) t
+    JOIN shop s ON t.shop_id = s.shop_id
+  `;
+
+  queryParameters.district = `%${district}%`;
+  queryParameters.city = `%${city}%`;
+  queryParameters.area = `%${area}%`;
+
+  const result = await query(queryString, queryParameters);
+
+  res.send({ data: result.rows, dataFetched: true });
 
   // res.send([]);
 });
 
-app.post("/api/shop/create", async (req, res, next) => {
+app.post("/api/shop/create", upload.single("image"), async (req, res, next) => {
+  console.log("req.body", req.body);
   const { name, district, city, area, activeHour } = req.body;
+  const image = req.file.buffer;
+
+  console.log("img", image);
 
   var currentTime = new Date().getTime();
-  var shop_id = "A" + currentTime.toString().slice(-3);
+  var shop_id = "A" + currentTime.toString().slice(-11);
   console.log(shop_id);
 
-  const result = await query(
-    `INSERT INTO shop (shop_id, shop_name, shop_location_district, shop_location_city, shop_location_area, shop_active_hours) VALUES ('${shop_id}', '${name}', '${district}', '${city}', '${area}', '${activeHour}')`
-  );
+  // const result = await query(
+  //   `INSERT INTO shop (shop_id, shop_name, shop_location_district, shop_location_city, shop_location_area, shop_active_hours) VALUES ('${shop_id}', '${name}', '${district}', '${city}', '${area}', '${activeHour}')`
+  // );
 
-  res.status(200).send({ shopCreated: true });
+  try {
+    const result = await query(
+      `INSERT INTO shop (shop_id, shop_name, shop_location_district, shop_location_city, shop_location_area, shop_active_hours, shop_image) VALUES (:shop_id, :name, :district, :city, :area, :activeHour, :image)`,
+      {
+        shop_id,
+        name,
+        district,
+        city,
+        area,
+        activeHour,
+        image: { type: OracleDB.BLOB, val: image },
+      }
+    );
+
+    console.log("result", result);
+    res
+      .status(200)
+      .send({ shopCreated: result.rowsAffected == 1 ? true : false });
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .send({ error: "An error occurred while creating the shop." });
+  }
+  // res.send();
 });
 
-app.put("/api/shop/update", async (req, res, next) => {
-  const { shop_id, name, district, city, area, activeHour } = req.body;
-
+app.put("/api/shop/update", upload.single("image"), async (req, res, next) => {
   console.log(req.body);
+  const { shop_id, name, district, city, area, activeHour } = req.body;
+  const image = req.file ? req.file.buffer : null;
 
-  const result = await query(
-    `UPDATE shop
-    SET shop_name = '${name}',
-        shop_location_district = '${district}',
-        shop_location_city = '${city}',
-        shop_location_area = '${area}',
-        shop_active_hours = '${activeHour}'
-    WHERE shop_id = '${shop_id}'`
-  );
+  let updateFields = [];
+  let bindValues = {};
 
-  res.status(200).send({ shopUpdated: true });
+  console.log("image", image);
+  // Check if each field is provided and add it to the updateFields array
+  if (name) {
+    updateFields.push("shop_name = :name");
+    bindValues.name = name;
+  }
+  if (district) {
+    updateFields.push("shop_location_district = :district");
+    bindValues.district = district;
+  }
+  if (city) {
+    updateFields.push("shop_location_city = :city");
+    bindValues.city = city;
+  }
+  if (area) {
+    updateFields.push("shop_location_area = :area");
+    bindValues.area = area;
+  }
+  if (activeHour) {
+    updateFields.push("shop_active_hours = :activeHour");
+    bindValues.activeHour = activeHour;
+  }
+  if (image) {
+    updateFields.push("shop_image = :image");
+    bindValues.image = { type: OracleDB.BLOB, val: image };
+  }
+
+  let queryString = `UPDATE shop SET ${updateFields.join(
+    ", "
+  )} WHERE shop_id = :shop_id`;
+  bindValues.shop_id = shop_id;
+
+  try {
+    const result = await query(queryString, bindValues);
+
+    console.log("result", result);
+    res
+      .status(200)
+      .send({ shopUpdated: result.rowsAffected == 1 ? true : false });
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .send({ error: "An error occurred while updating the shop." });
+  }
 });
 
 app.get("/api/shops/:shopId", async (req, res, next) => {
@@ -103,13 +200,13 @@ app.get("/api/shops/:shopId", async (req, res, next) => {
 	  JOIN service USING(service_id)
 	  WHERE shop_id = '${shopId}'
 	  `
-  );
+  ).then((data) => data.rows);
 
   const shop = await query(
     `SELECT * from shop
 	  WHERE shop_id = '${shopId}'
 	  `
-  );
+  ).then((data) => data.rows);
 
   //inserting the service info to shop
   if (shop[0]) {
@@ -129,7 +226,7 @@ app.delete("/api/shops/:shopId", async (req, res, next) => {
 	  FROM provides
 	  WHERE shop_id = '${shopId}'
 	  `
-  );
+  ).then((data) => data.rows);
 
   await query(
     `Delete 
@@ -149,7 +246,7 @@ app.delete("/api/shops/:shopId", async (req, res, next) => {
     WHERE shop_id = '${shopId}'`
   );
 
-  res.status(200).send({ shopDeleted: true });
+  res.status(200).send({ shopDeleted: true, deletedId: shopId });
 });
 
 app.post("/api/signup/customer", async (req, res, next) => {
