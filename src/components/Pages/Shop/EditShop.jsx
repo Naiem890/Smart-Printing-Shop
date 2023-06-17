@@ -16,6 +16,7 @@ export default function EditShop() {
   const [activeHour, setActiveHour] = useState("");
   const [shopImage, setShopImage] = useState(null);
   const [previewURL, setPreviewURL] = useState("");
+
   const navigator = useNavigate();
 
   useEffect(() => {
@@ -90,6 +91,8 @@ export default function EditShop() {
     if (result.shopUpdated) {
       toast("Shop Updated Successfully!!", {
         autoClose: 3000,
+        type: "success",
+        theme: "colored",
       });
 
       setTimeout(() => {
@@ -103,7 +106,7 @@ export default function EditShop() {
   }
 
   return (
-    <div className="max-w-[90%] mx-auto mt-10">
+    <div className="max-w-[85%] mx-auto mt-10">
       <div>
         <div className="grid grid-cols-3 space-x-16">
           <div className="col-span-2">
@@ -120,22 +123,22 @@ export default function EditShop() {
                 </div>
                 <div>
                   <button
-                    type="submit"
-                    class="inline-flex justify-center h-12 w-full text-center sm:w-auto items-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 sm:ml-3"
-                  >
-                    Update Shop Details
-                  </button>
-                  <button
                     onClick={() => {
-                      navigator(`/shop-owner/edit-service/${shop.SHOP_ID}`);
+                      navigator(`/shop-owner/service/edit/${shop.SHOP_ID}`);
                     }}
                     class="inline-flex justify-center h-12 w-full text-center sm:w-auto items-center text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 sm:ml-3"
                   >
                     Edit Shop Service
                   </button>
+                  <button
+                    type="submit"
+                    class="inline-flex justify-center h-12 w-full text-center sm:w-auto items-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 sm:ml-3"
+                  >
+                    Update Shop Details
+                  </button>
                 </div>
               </div>
-              <div className="flex flex-col gap-10">
+              <div className="flex flex-col gap-6">
                 <div>
                   <label
                     for="name"
@@ -202,7 +205,7 @@ export default function EditShop() {
                   <figure className="-my-6">
                     <img className="h-32" src={shopImage} alt="Preview" />
                     <figcaption className="text-sm italic">
-                      Previous Image
+                      Current Shop Image
                     </figcaption>
                   </figure>
                   {previewURL && (
@@ -213,7 +216,7 @@ export default function EditShop() {
                         alt="Updated Preview"
                       />
                       <figcaption className="text-sm italic">
-                        Updated Image
+                        Updated Shop Image
                       </figcaption>
                     </figure>
                   )}

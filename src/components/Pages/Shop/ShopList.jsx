@@ -36,6 +36,8 @@ export default function ShopList() {
         if (result.shopDeleted) {
           toast("Shop Deleted Successfully!!", {
             autoClose: 3000,
+            type: "success",
+            theme: "colored",
           });
 
           // setTimeout(() => {
@@ -47,7 +49,7 @@ export default function ShopList() {
   };
 
   return (
-    <div className="max-w-[90%] mx-auto mt-10">
+    <div className="max-w-[85%] mx-auto mt-10">
       <div>
         <div className="grid grid-cols-3 space-x-16">
           <div className="col-span-2">

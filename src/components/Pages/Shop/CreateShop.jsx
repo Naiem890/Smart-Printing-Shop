@@ -50,13 +50,19 @@ export default function CreateShop() {
     if (result.shopCreated) {
       toast("Shop Created Successfully!!", {
         autoClose: 3000,
+        type: "success",
+        theme: "colored",
       });
-
+    } else {
+      toast("Error in shop creation", {
+        type: "error",
+        theme: "colored",
+      });
     }
   };
 
   return (
-    <div className="max-w-[90%] mx-auto mt-10">
+    <div className="max-w-[85%] mx-auto mt-10">
       <div>
         <div className="grid grid-cols-3 space-x-16">
           <div className="col-span-2">
@@ -66,12 +72,7 @@ export default function CreateShop() {
             >
               <div className="flex col-span-full justify-between">
                 <div className="flex gap-8 items-center">
-                  <button
-                    onClick={() => {
-                      navigate(-1);
-                    }}
-                    className=""
-                  >
+                  <button onClick={() => navigate(-1)} className="">
                     <ArrowLeftIcon className="h-6 w-6" />
                   </button>
                   <h1 className="text-3xl font-bold">Create Shop</h1>
@@ -84,7 +85,7 @@ export default function CreateShop() {
                 </button>
               </div>
 
-              <div className="flex flex-col gap-10">
+              <div className="flex flex-col gap-6">
                 <div>
                   <label
                     for="name"

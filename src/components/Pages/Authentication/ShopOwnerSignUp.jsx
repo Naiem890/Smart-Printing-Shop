@@ -16,7 +16,7 @@ export default function ShopOwnerSignUp() {
     const shopOwner = { name, phone, email, password };
     console.log(shopOwner);
 
-    navigate("/shop-owner/create-shop");
+    navigate("/shop-owner/shop/create");
 
     // const response = await fetch(
     //   "http://localhost:3000/api/auth/signup/shop-owner",

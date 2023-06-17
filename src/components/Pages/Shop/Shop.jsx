@@ -34,7 +34,7 @@ export default function Shop() {
   }
 
   return (
-    <div className="max-w-[90%] mx-auto mt-10">
+    <div className="max-w-[85%] mx-auto mt-10">
       <div>
         <div className="flex gap-8 items-center">
           <a href="/search" className="">
@@ -94,12 +94,17 @@ export default function Shop() {
                         value={service.SERVICE_ID}
                         class="hidden peer"
                         required
+                        disabled={service.SERVICE_AVAILABILITY ? false : true}
                       />
                       <label
                         for={service.SERVICE_NAME}
-                        class="inline-flex items-center justify-between w-full p-5 text-gray-500 bg-white border border-gray-200 rounded-lg cursor-pointer dark:hover:text-gray-300 dark:border-gray-700 dark:peer-checked:text-blue-500 peer-checked:border-blue-600 peer-checked:text-blue-600 hover:text-gray-600 hover:shadow-xl transition-all dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700"
+                        class={`inline-flex items-center justify-between w-full p-5 text-gray-500  border border-gray-200 rounded-lg dark:hover:text-gray-300 dark:border-gray-700 dark:peer-checked:text-blue-500  peer-checked:border-blue-600 peer-checked:text-blue-600 hover:text-gray-600  transition-all dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700 ${
+                          service.SERVICE_AVAILABILITY
+                            ? "bg-white cursor-pointer hover:shadow-xl"
+                            : "bg-slate-100 cursor-not-allowed"
+                        }`}
                       >
-                        <div class="block">
+                        <div class="block disabled:bg-slate-400">
                           <div class="w-full text-xl mb-2 font-semibold">
                             {service.SERVICE_NAME}
                           </div>
@@ -110,6 +115,18 @@ export default function Shop() {
                           <div class="w-full text-gray-500 font-mono">
                             ETA: {service.ESTIMATED_TIME_IN_MIN_REQUIRED}
                             Min/Unit
+                          </div>
+                          <div
+                            className={`w-full mt-1 ${
+                              service.SERVICE_AVAILABILITY
+                                ? "text-green-500"
+                                : "text-red-500"
+                            } font-mono`}
+                          >
+                            Service{" "}
+                            {service.SERVICE_AVAILABILITY
+                              ? "Available"
+                              : "Unavailable"}
                           </div>
                         </div>
                       </label>

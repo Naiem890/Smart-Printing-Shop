@@ -12,6 +12,7 @@ import ShopOwnerSignUp from "./components/Pages/Authentication/ShopOwnerSignUp";
 import CreateShop from "./components/Pages/Shop/CreateShop";
 import ShopList from "./components/Pages/Shop/ShopList";
 import EditShop from "./components/Pages/Shop/EditShop";
+import EditService from "./components/Pages/Shop/EditService";
 
 function App() {
   return (
@@ -29,8 +30,10 @@ function App() {
         <Route path="/shop-owner/login" element={<ShopOwnerLogin />} />
         <Route path="/shop-owner/sign-up" element={<ShopOwnerSignUp />} />
 
-        <Route path="/shop-owner/create-shop" element={<CreateShop />} />
-        <Route path="/shop-owner/edit-shop/:shopId" element={<EditShop />} />
+        <Route path="/shop-owner/shop/create" element={<CreateShop />} />
+        <Route path="/shop-owner/shop/edit/:shopId" element={<EditShop />} />
+        <Route path="/shop-owner/service/edit/:shopId" element={<EditService />} />
+
         <Route path="/shop-owner/shop-list" element={<ShopList />} />
 
         <Route path="*" element={<NotFound />} />
