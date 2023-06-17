@@ -5,6 +5,7 @@ const logger = require("morgan");
 const { query } = require("./services/dbService");
 const multer = require("multer");
 const OracleDB = require("oracledb");
+const { v4: uuidv4 } = require("uuid");
 
 require("dotenv").config();
 
@@ -100,8 +101,7 @@ app.post("/api/shop/create", upload.single("image"), async (req, res, next) => {
 
   console.log("img", image);
 
-  var currentTime = new Date().getTime();
-  var shop_id = "A" + currentTime.toString().slice(-11);
+  var shop_id = "A" + uuidv4().slice(0, 11);
   console.log(shop_id);
 
   // const result = await query(
@@ -190,12 +190,142 @@ app.put("/api/shop/update", upload.single("image"), async (req, res, next) => {
   }
 });
 
+app.post("/api/service/create", async (req, res, next) => {
+  console.log(req.body);
+  const { shop_id, type, chargePerUnit, eta, availability } = req.body;
+
+  var service_id = "S" + uuidv4().slice(0, 9);
+  console.log(service_id);
+
+  try {
+    const serviceResult = await query(
+      `INSERT INTO service (SERVICE_ID, SERVICE_NAME, SERVICE_CHARGE_PER_UNIT, ESTIMATED_TIME_IN_MIN_REQUIRED, SERVICE_AVAILABILITY) 
+       VALUES (:service_id, :type, :chargePerUnit, :eta, :availability)`,
+      {
+        service_id,
+        type,
+        chargePerUnit,
+        eta,
+        availability,
+      }
+    );
+
+    if (serviceResult.rowsAffected == 1) {
+      var providesResult = await query(
+        `INSERT INTO provides (SHOP_ID, SERVICE_ID) 
+         VALUES (:shop_id, :service_id)`,
+        {
+          shop_id,
+          service_id,
+        }
+      );
+    }
+
+    console.log("serviceResult", serviceResult);
+    console.log("providesResult", providesResult);
+
+    res.status(200).send({
+      serviceCreated: serviceResult.rowsAffected == 1 ? true : false,
+      providesCreated: providesResult.rowsAffected == 1 ? true : false,
+    });
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .send({ error: "An error occurred while creating the service." });
+  }
+});
+
+app.put("/api/service/update", async (req, res, next) => {
+  console.log(req.body);
+  const { service_id, type, chargePerUnit, eta, availability } = req.body;
+
+  let updateFields = [];
+  let bindValues = {};
+
+  // Check which fields are present in the request body and add them to the updateFields array
+  if (type) {
+    updateFields.push("SERVICE_NAME = :type");
+    bindValues.type = type;
+  }
+  if (chargePerUnit) {
+    updateFields.push("SERVICE_CHARGE_PER_UNIT = :chargePerUnit");
+    bindValues.chargePerUnit = chargePerUnit;
+  }
+  if (eta) {
+    updateFields.push("ESTIMATED_TIME_IN_MIN_REQUIRED = :eta");
+    bindValues.eta = eta;
+  }
+  if (availability == 1 || availability == 0) {
+    updateFields.push("SERVICE_AVAILABILITY = :availability");
+    bindValues.availability = availability;
+  }
+
+  let queryString = `UPDATE service SET ${updateFields.join(
+    ", "
+  )} WHERE service_id = :service_id`;
+  bindValues.service_id = service_id;
+
+  console.log("queryString", queryString);
+
+  try {
+    const result = await query(queryString, bindValues);
+
+    console.log("result", result);
+    res
+      .status(200)
+      .send({ serviceUpdated: result.rowsAffected == 1 ? true : false });
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .send({ error: "An error occurred while updating the shop." });
+  }
+});
+
+app.delete("/api/service/delete/:serviceId", async (req, res, next) => {
+  const serviceId = req.params.serviceId;
+
+  try {
+    const deleteServiceResult = await query(
+      `DELETE FROM service WHERE SERVICE_ID = :serviceId`,
+      {
+        serviceId,
+      }
+    );
+
+    const deleteProvidesResult = await query(
+      `DELETE FROM provides WHERE SERVICE_ID = :serviceId`,
+      {
+        serviceId,
+      }
+    );
+
+    console.log("deleteServiceResult", deleteServiceResult);
+    console.log("deleteProvidesResult", deleteProvidesResult);
+
+    if (
+      deleteServiceResult.rowsAffected > 0 ||
+      deleteProvidesResult.rowsAffected > 0
+    ) {
+      res.status(200).send({ serviceDeleted: true });
+    } else {
+      res.status(404).send({ error: "Service not found." });
+    }
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .send({ error: "An error occurred while deleting the service." });
+  }
+});
+
 app.get("/api/shops/:shopId", async (req, res, next) => {
   const { shopId } = req.params;
   console.log("Shopid", shopId);
 
   const services = await query(
-    `SELECT SERVICE_ID, SERVICE_NAME, SERVICE_CHARGE_PER_UNIT, ESTIMATED_TIME_IN_MIN_REQUIRED
+    `SELECT *
 	  FROM provides
 	  JOIN service USING(service_id)
 	  WHERE shop_id = '${shopId}'
