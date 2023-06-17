@@ -379,20 +379,61 @@ app.delete("/api/shops/:shopId", async (req, res, next) => {
   res.status(200).send({ shopDeleted: true, deletedId: shopId });
 });
 
-app.post("/api/signup/customer", async (req, res, next) => {
+app.post("/api/auth/signup/customer", async (req, res, next) => {
   const { email, phone, name, password } = req.body;
 
   console.log(req.body);
 
-  var currentTime = new Date().getTime();
-  var customer_id = "CS-" + currentTime.toString().slice(-7);
-  console.log(customer_id);
+  const cust_id = "CS" + uuidv4().slice(0, 8);
+  console.log(cust_id);
 
-  //   console.log(newCustomer);
-  const result = await query(
-    `INSERT INTO CUSTOMERS (cust_id, cust_name, cust_phone, cust_email, cust_pass) VALUES ('${customer_id}','${name}','${phone}','${email}','${password}')`
-  );
-  res.send({});
+  try {
+    const result = await query(
+      `INSERT INTO CUSTOMERS (cust_id, cust_name, cust_phone, cust_email, cust_pass) VALUES (:cust_id, :name, :phone, :email, :password)`,
+      {
+        cust_id,
+        name,
+        phone,
+        email,
+        password,
+      }
+    );
+
+    console.log("result", result);
+    res.send({
+      userCreated: result.rowsAffected == 1 ? true : false,
+      CUST_ID: cust_id,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ error: "An error occurred while signing up." });
+  }
+});
+
+app.post("/api/auth/login/customer", async (req, res, next) => {
+  const { email, password } = req.body;
+  console.log(req.body);
+
+  try {
+    // Perform authentication logic here, e.g., checking credentials against the database
+    // You can use the query function or any other method to retrieve the customer details
+    const customer = await query(
+      `SELECT * FROM CUSTOMERS WHERE cust_email = :email AND cust_pass = :password`,
+      { email, password }
+    ).then((data) => data.rows[0]);
+
+    if (customer) {
+      console.log(customer);
+      // Customer login successful
+      res.status(200).send(customer);
+    } else {
+      // Invalid credentials
+      res.status(401).send({ error: "Invalid credentials" });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ error: "An error occurred while logging in." });
+  }
 });
 
 app.get("/", (req, res) => {
