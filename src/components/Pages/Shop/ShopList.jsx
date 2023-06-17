@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import InstructionCardShopOwner from "./InstructionCardShopOwner";
 import { toast } from "react-toastify";
 import ShopCardWithEditAndDelete from "./ShopCardWithEditAndDelete";
+import Swal from "sweetalert2";
 
 export default function ShopList() {
   const [shops, setShops] = useState([]);
@@ -9,8 +10,41 @@ export default function ShopList() {
   useEffect(() => {
     fetch(`http://localhost:3000/api/shops`)
       .then((res) => res.json())
-      .then((data) => setShops(data));
+      .then((data) => setShops(data.data));
   }, []);
+
+  const handleDelete = (shopId) => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        const response = await fetch(
+          `http://localhost:3000/api/shops/${shopId}`,
+          {
+            method: "DELETE",
+          }
+        );
+
+        const result = await response.json();
+        console.log("Success:", result);
+        if (result.shopDeleted) {
+          toast("Shop Deleted Successfully!!", {
+            autoClose: 3000,
+          });
+
+          // setTimeout(() => {
+          //   window.location.reload(false);
+          // }, 3000); // Delay the reload by 3000 milliseconds (3 seconds)
+        }
+      }
+    });
+  };
 
   return (
     <div className="max-w-[90%] mx-auto mt-10">
@@ -23,7 +57,11 @@ export default function ShopList() {
             <div className="mt-10">
               <ul className="flex flex-col gap-5">
                 {shops.map((shop) => (
-                  <ShopCardWithEditAndDelete key={shop.SHOP_ID} shop={shop} />
+                  <ShopCardWithEditAndDelete
+                    handleDelete={handleDelete}
+                    key={shop.SHOP_ID}
+                    shop={shop}
+                  />
                 ))}
               </ul>
             </div>

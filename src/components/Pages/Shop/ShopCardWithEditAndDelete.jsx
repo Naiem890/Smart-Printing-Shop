@@ -1,49 +1,17 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { toast } from "react-toastify";
-import Swal from "sweetalert2";
+import { Buffer } from "buffer";
 
-export default function ShopCardWithEditAndDelete({ shop }) {
-  const handleDelete = () => {
-    Swal.fire({
-      title: "Are you sure?",
-      text: "You won't be able to revert this!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, delete it!",
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        const response = await fetch(
-          `http://localhost:3000/api/shops/${shop.SHOP_ID}`,
-          {
-            method: "DELETE",
-          }
-        );
+export default function ShopCardWithEditAndDelete({ shop, handleDelete }) {
+  const base64Image = Buffer.from(shop.SHOP_IMAGE.data).toString("base64");
 
-        const result = await response.json();
-        console.log("Success:", result);
-        if (result.shopDeleted) {
-          toast("Shop Deleted Successfully!!", {
-            autoClose: 3000,
-          });
-
-          setTimeout(() => {
-            window.location.reload(false);
-          }, 3000); // Delay the reload by 3000 milliseconds (3 seconds)
-        }
-      }
-    });
-  };
+  // Create the image source with the Base64-encoded image data
+  const shopImage = `data:image/jpeg;base64,${base64Image}`;
   return (
     <div className="shadow border rounded-lg hover:shadow-xl transition-all cursor-pointer">
       <div className="flex px-5 py-4 gap-5 items-center">
         <div className="w-44">
-          <img
-            src="https://www.ryman.co.uk/media/wysiwyg/-ryman/LandingPages/Print_Services/store_1.jpg"
-            alt=""
-          />
+          <img src={shopImage} alt="" />
         </div>
         <div>
           <h3 className="text-2xl tracking-tight font-bold">
@@ -97,7 +65,7 @@ export default function ShopCardWithEditAndDelete({ shop }) {
                 </svg>
               </Link>
               <button
-                onClick={handleDelete}
+                onClick={() => handleDelete(shop.SHOP_ID)}
                 class="inline-flex justify-center ml-auto h-12 w-full text-center sm:w-auto items-center text-white bg-red-500 hover:bg-red-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mt-5"
               >
                 Delete Store

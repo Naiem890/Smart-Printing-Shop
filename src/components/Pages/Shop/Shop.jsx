@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Buffer } from "buffer";
 import {
   ArrowLeftIcon,
   ClockIcon,
@@ -6,18 +7,31 @@ import {
   StarIcon,
 } from "@heroicons/react/24/solid";
 import { useNavigate, useParams } from "react-router-dom";
+import Loader from "../../UI-elements/Loader";
 
 export default function Shop() {
   const { shopId } = useParams();
-  const [shop, setShop] = useState({});
+  const [shop, setShop] = useState(null);
   const [selectedService, setSelectedService] = useState("");
+  const [shopImage, setShopImage] = useState(null);
   const navigate = useNavigate();
-
   useEffect(() => {
     fetch(`http://localhost:3000/api/shops/${shopId}`)
       .then((res) => res.json())
-      .then((data) => setShop(data));
-  }, [shopId]);
+      .then((data) => {
+        setShop(data);
+        const base64Image = Buffer.from(data.SHOP_IMAGE.data).toString(
+          "base64"
+        );
+
+        // Create the image source with the Base64-encoded image data
+        setShopImage(`data:image/jpeg;base64,${base64Image}`);
+      });
+  }, [shopId, shopImage]);
+
+  if (!shop) {
+    return <Loader />;
+  }
 
   return (
     <div className="max-w-[90%] mx-auto mt-10">
@@ -31,10 +45,7 @@ export default function Shop() {
         <div className="mt-10">
           <div className="flex gap-20">
             <div className="flex-1">
-              <img
-                src="https://www.ryman.co.uk/media/wysiwyg/-ryman/LandingPages/Print_Services/store_1.jpg"
-                alt=""
-              />
+              <img src={shopImage} alt="" />
             </div>
             <div className="flex-1">
               <h1 className="text-4xl font-extrabold text-slate-800 leading-tight">
@@ -69,6 +80,11 @@ export default function Shop() {
                   }}
                   className="mt-5 grid grid-cols-2 gap-4"
                 >
+                  {shop.SHOP_SERVICES?.length == 0 && (
+                    <p className="text-gray-500 font-mono">
+                      No Service available
+                    </p>
+                  )}
                   {shop.SHOP_SERVICES?.map((service) => (
                     <li key={service.SERVICE_ID}>
                       <input

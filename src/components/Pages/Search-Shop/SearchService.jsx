@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import InstructionCard from "./InstructionCard";
 import ShopCard from "./ShopCard";
+import LoaderCircle from "../../UI-elements/LoaderCircle";
 
 const SearchService = () => {
   const [shops, setShops] = useState([]);
@@ -91,7 +92,6 @@ const SearchService = () => {
               </select>
               <a
                 class="inline-flex justify-center h-12 w-full text-center sm:w-auto items-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 sm:ml-3"
-                href="/login/"
               >
                 Search
                 <svg
@@ -187,7 +187,11 @@ const SearchService = () => {
               </ul>
             </div>
             <div className="mt-10 flex flex-col gap-6 mb-16">
-              {shops.map((shop) => (
+              {!shops?.data?.length && !shops?.dataFetched && <LoaderCircle />}
+              {!shops?.data?.length && shops?.dataFetched && (
+                <p>No Shop Found!</p>
+              )}
+              {shops?.data?.map((shop) => (
                 <ShopCard key={shop.SHOP_ID} shop={shop} />
               ))}
             </div>
