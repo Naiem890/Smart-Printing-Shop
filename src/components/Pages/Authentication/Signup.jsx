@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 export default function Signup() {
   const [name, setName] = useState("");
@@ -7,25 +8,55 @@ export default function Signup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rePassword, setRePassword] = useState("");
+  const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  const handleSignUp = async (e) => {
     e.preventDefault();
 
     const customer = { name, phone, email, password };
     console.log(customer);
 
+    try {
+      const response = await fetch(
+        "http://localhost:3000/api/auth/signup/customer",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(customer),
+        }
+      );
 
-    const response = await fetch("http://localhost:3000/api/auth/signup/customer", {
-      method: "POST", // or 'PUT'
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(customer),
-    });
+      const result = await response.json();
+      console.log("Success:", result);
 
-    const result = await response.json();
-    console.log("Success:", result);
+      if (result.userCreated) {
+        localStorage.setItem("CUST_ID", result.CUST_ID);
 
+        // User created successfully, navigate to other page
+        toast("User registration successfully!", {
+          autoClose: 3000,
+          type: "success",
+          theme: "colored",
+          onClose: () => {
+            navigate("/search");
+          },
+        });
+      } else {
+        // User creation failed, show error toast notification
+        toast("Failed to create user.", {
+          autoClose: 3000,
+          type: "error",
+          theme: "colored",
+        });
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error("An error occurred while signing up.", {
+        autoClose: 3000,
+      });
+    }
   };
 
   return (
@@ -43,7 +74,7 @@ export default function Signup() {
               <Link to="/sign-up">Sign Up</Link>
             </h2>
           </div>
-          <form onSubmit={handleSubmit} class="mt-8 space-y-6">
+          <form onSubmit={handleSignUp} class="mt-8 space-y-6">
             <div className="flex justify-between">
               <div>
                 <label
