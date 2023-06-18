@@ -29,9 +29,13 @@ export default function OrderService() {
     numberOfPages * service.SERVICE_CHARGE_PER_UNIT
   );
   let platformCharge = Math.round(serviceCharge * 0.1);
-  let totalCharge = serviceCharge + platformCharge;
+  let totalCharge =
+    serviceCharge +
+    platformCharge +
+    (highPriority ? Math.round(serviceCharge * 0.05) : 0);
   let estimatedTime = numberOfPages * service.ESTIMATED_TIME_IN_MIN_REQUIRED;
 
+  console.log(serviceCharge, totalCharge, Math.round(serviceCharge * 0.05));
   const handleFileChange = (e) => {
     setSelectedFile(e.target.files[0]);
     setFileUploadError(false);
