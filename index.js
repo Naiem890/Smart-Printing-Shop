@@ -278,7 +278,7 @@ app.post("/api/service/create", async (req, res, next) => {
   console.log(req.body);
   const { shop_id, type, chargePerUnit, eta, availability } = req.body;
 
-  var service_id = "S" + uuidv4().slice(0, 9);
+  const service_id = "S" + uuidv4().slice(0, 9);
   console.log(service_id);
 
   try {
@@ -434,6 +434,38 @@ app.post("/api/auth/signup/customer", async (req, res, next) => {
     res.status(500).send({ error: "An error occurred while signing up." });
   }
 });
+
+app.post(
+  "/api/order/create",
+  upload.single("orderDocument"),
+  async (req, res, next) => {
+    console.log(req.body);
+    try {
+      const { orderPriority, orderAmount, orderDate, cust_id } = req.body;
+      const orderDocument = req.file.buffer; // Retrieve the file buffer from multer
+
+      const orderId = "O" + uuidv4().slice(0, 9);
+      // Save the order data to the database
+      const queryString = `INSERT INTO orders (order_id, order_document, order_status, order_priority, order_amount, order_delivery_time, order_date, cust_id) VALUES (:orderId, :orderDocument, 'Queued', :orderPriority, :orderAmount, NULL, SYSDATE, :cust_id)`;
+
+      const params = {
+        orderId: orderId,
+        orderDocument,
+        orderPriority: orderPriority == "true" ? "High" : "Normal",
+        orderAmount: +orderAmount,
+        cust_id,
+      };
+
+      // Execute the query with the provided parameters
+      await query(queryString, params);
+
+      res.status(201).json({ message: "Order placed successfully" });
+    } catch (error) {
+      console.error("Error placing order:", error);
+      res.status(500).json({ message: "Error placing order" });
+    }
+  }
+);
 
 app.post("/api/auth/login/customer", async (req, res, next) => {
   const { email, password } = req.body;
