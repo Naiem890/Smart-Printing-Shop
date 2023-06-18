@@ -25,8 +25,11 @@ export default function OrderService() {
   if (!service) {
     return <Loader />;
   }
-  let totalAmount = numberOfPages * service.SERVICE_CHARGE_PER_UNIT;
-  let platformCharge = totalAmount * 0.1;
+  let serviceCharge = Math.round(
+    numberOfPages * service.SERVICE_CHARGE_PER_UNIT
+  );
+  let platformCharge = Math.round(serviceCharge * 0.1);
+  let totalCharge = serviceCharge + platformCharge;
   let estimatedTime = numberOfPages * service.ESTIMATED_TIME_IN_MIN_REQUIRED;
 
   const handleFileChange = (e) => {
@@ -42,32 +45,67 @@ export default function OrderService() {
     };
   };
 
-  const handleCreateShop = async (e) => {
+  const handlePlaceOrder = async (e) => {
     e.preventDefault();
+
+    const custId = localStorage.getItem("CUST_ID");
 
     if (!selectedFile) {
       setFileUploadError(true);
+      return;
     }
 
-    // const response = await fetch("http://localhost:3000/api/shop/create", {
-    //   method: "POST", // or 'PUT'
-    //   body: formData,
-    // });
+    if (!custId) {
+      return;
+    }
 
-    // const result = await response.json();
-    // console.log("Success:", result);
-    // if (result.shopCreated) {
-    //   toast("Shop Created Successfully!!", {
-    //     autoClose: 3000,
-    //     type: "success",
-    //     theme: "colored",
-    //   });
-    // } else {
-    //   toast("Error in shop creation", {
-    //     type: "error",
-    //     theme: "colored",
-    //   });
-    // }
+    const orderData = {
+      orderDocument: selectedFile,
+      orderPriority: highPriority,
+      orderAmount: totalCharge,
+      orderDate: new Date(),
+      cust_id: custId,
+    };
+
+    console.log(orderData);
+
+    const formData = new FormData();
+    formData.append("orderDocument", selectedFile);
+    formData.append("orderPriority", highPriority);
+    formData.append("orderAmount", totalCharge);
+    formData.append("orderDate", new Date());
+    formData.append("cust_id", custId);
+
+    try {
+      const response = await fetch("http://localhost:3000/api/order/create", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (response.ok) {
+        console.log("Order placed successfully");
+
+        toast("Order placed successfully!", {
+          type: "success",
+          theme: "colored",
+        });
+        // Handle success scenario
+      } else {
+        console.error("Error placing order");
+        // Handle error scenario
+        toast("Error placing order!", {
+          type: "error",
+          theme: "colored",
+        });
+      }
+    } catch (error) {
+      console.error("Error placing order:", error);
+      toast("Error placing order!", {
+        type: "error",
+        theme: "colored",
+      });
+      // Handle error scenario
+    }
   };
 
   return (
@@ -75,7 +113,10 @@ export default function OrderService() {
       <div>
         <div className="grid grid-cols-3 space-x-16">
           <div className="col-span-2">
-            <form className="grid grid-cols-2 gap-10 ">
+            <form
+              onSubmit={handlePlaceOrder}
+              className="grid grid-cols-2 gap-10 "
+            >
               <div className="flex col-span-full justify-between">
                 <div className="flex gap-8 items-center">
                   <button onClick={() => navigate(-1)} className="">
@@ -168,15 +209,15 @@ export default function OrderService() {
                 </div>
                 <div className="flex justify-between font-mono border px-6 py-3 hover:shadow-md cursor-pointer transition-all">
                   <h3 className="text-xl font-semibold">Order Amount: </h3>
-                  <span>{Math.round(totalAmount)} BDT</span>
+                  <span>{serviceCharge} BDT</span>
                 </div>
                 <div className="flex justify-between font-mono border px-6 py-3 hover:shadow-md cursor-pointer transition-all">
                   <h3 className="text-xl font-semibold">Platform Charge: </h3>
-                  <span>{Math.round(platformCharge)} BDT</span>
+                  <span>{platformCharge} BDT</span>
                 </div>
                 <div className="flex justify-between font-mono border px-6 py-3 hover:shadow-md cursor-pointer transition-all">
                   <h3 className="text-xl font-semibold">Total Charge: </h3>
-                  <span>{Math.round(platformCharge + totalAmount)} BDT</span>
+                  <span>{totalCharge} BDT</span>
                 </div>
 
                 <label class="relative inline-flex items-center mr-5 mt-10 cursor-pointer">
