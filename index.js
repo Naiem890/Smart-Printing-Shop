@@ -24,6 +24,7 @@ const middleware = [
 
 app.use(middleware);
 
+// Shops apis
 app.get("/api/shops", async (req, res, next) => {
   const search_by_service = (req.query.search_by_service || "").toUpperCase();
   const district = (req.query.district || "").toUpperCase();
@@ -190,6 +191,89 @@ app.put("/api/shop/update", upload.single("image"), async (req, res, next) => {
   }
 });
 
+app.get("/api/shops/:shopId", async (req, res, next) => {
+  const { shopId } = req.params;
+  console.log("Shopid", shopId);
+
+  const services = await query(
+    `SELECT *
+	  FROM provides
+	  JOIN service USING(service_id)
+	  WHERE shop_id = '${shopId}'
+	  `
+  ).then((data) => data.rows);
+
+  const shop = await query(
+    `SELECT * from shop
+	  WHERE shop_id = '${shopId}'
+	  `
+  ).then((data) => data.rows);
+
+  //inserting the service info to shop
+  if (shop[0]) {
+    shop[0].SHOP_SERVICES = services;
+    res.send(shop[0]);
+  } else {
+    res.send({});
+  }
+});
+
+app.delete("/api/shops/:shopId", async (req, res, next) => {
+  const { shopId } = req.params;
+  console.log("Shopid", shopId);
+
+  const services = await query(
+    `SELECT SERVICE_ID
+	  FROM provides
+	  WHERE shop_id = '${shopId}'
+	  `
+  ).then((data) => data.rows);
+
+  await query(
+    `Delete 
+	  FROM service
+    WHERE service_id IN ('${services.map((s) => s.SERVICE_ID).join("', '")}')`
+  );
+
+  await query(
+    `Delete 
+	  FROM provides
+    WHERE shop_id = '${shopId}'`
+  );
+
+  await query(
+    `Delete 
+	  FROM shop
+    WHERE shop_id = '${shopId}'`
+  );
+
+  res.status(200).send({ shopDeleted: true, deletedId: shopId });
+});
+
+// Service apis
+app.get("/api/services/:serviceId", async (req, res, next) => {
+  const { serviceId } = req.params;
+  console.log("serviceId", serviceId);
+
+  try {
+    const service = await query(
+      `SELECT * FROM service WHERE service_id = :serviceId`,
+      { serviceId }
+    ).then((data) => data.rows[0]);
+
+    if (service) {
+      res.status(200).send(service);
+    } else {
+      res.status(404).send({ error: "Service not found" });
+    }
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .send({ error: "An error occurred while retrieving the service" });
+  }
+});
+
 app.post("/api/service/create", async (req, res, next) => {
   console.log(req.body);
   const { shop_id, type, chargePerUnit, eta, availability } = req.body;
@@ -318,65 +402,6 @@ app.delete("/api/service/delete/:serviceId", async (req, res, next) => {
       .status(500)
       .send({ error: "An error occurred while deleting the service." });
   }
-});
-
-app.get("/api/shops/:shopId", async (req, res, next) => {
-  const { shopId } = req.params;
-  console.log("Shopid", shopId);
-
-  const services = await query(
-    `SELECT *
-	  FROM provides
-	  JOIN service USING(service_id)
-	  WHERE shop_id = '${shopId}'
-	  `
-  ).then((data) => data.rows);
-
-  const shop = await query(
-    `SELECT * from shop
-	  WHERE shop_id = '${shopId}'
-	  `
-  ).then((data) => data.rows);
-
-  //inserting the service info to shop
-  if (shop[0]) {
-    shop[0].SHOP_SERVICES = services;
-    res.send(shop[0]);
-  } else {
-    res.send({});
-  }
-});
-
-app.delete("/api/shops/:shopId", async (req, res, next) => {
-  const { shopId } = req.params;
-  console.log("Shopid", shopId);
-
-  const services = await query(
-    `SELECT SERVICE_ID
-	  FROM provides
-	  WHERE shop_id = '${shopId}'
-	  `
-  ).then((data) => data.rows);
-
-  await query(
-    `Delete 
-	  FROM service
-    WHERE service_id IN ('${services.map((s) => s.SERVICE_ID).join("', '")}')`
-  );
-
-  await query(
-    `Delete 
-	  FROM provides
-    WHERE shop_id = '${shopId}'`
-  );
-
-  await query(
-    `Delete 
-	  FROM shop
-    WHERE shop_id = '${shopId}'`
-  );
-
-  res.status(200).send({ shopDeleted: true, deletedId: shopId });
 });
 
 app.post("/api/auth/signup/customer", async (req, res, next) => {
