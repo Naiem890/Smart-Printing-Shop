@@ -37,14 +37,13 @@ export default function Login() {
         const errorData = await response.json();
         console.error("Error:", errorData.error);
         // Display an error message to the user, e.g., using a toast notification library
-        toast("Error:", errorData.error, {
+        toast(`Error: ${errorData.error}`, {
           type: "error",
           theme: "colored",
         });
       }
     } catch (error) {
-      console.error("Error:", error);
-      toast("Error:", error, {
+      toast(`Error: ${error}`, {
         type: "error",
         theme: "colored",
       });

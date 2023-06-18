@@ -12,11 +12,11 @@ const Navbar = () => {
         </Link>
         <div class="flex md:order-2 gap-6">
           <Link
-            to="/search"
+            to="/login"
             type="button"
             class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-6 py-4 text-center mr-3 md:mr-0 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
           >
-            Search Shops
+            Login/Signup
           </Link>
           <Link
             to="/shop-owner/login"

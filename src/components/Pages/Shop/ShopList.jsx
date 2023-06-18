@@ -3,9 +3,10 @@ import InstructionCardShopOwner from "./InstructionCardShopOwner";
 import { toast } from "react-toastify";
 import ShopCardWithEditAndDelete from "./ShopCardWithEditAndDelete";
 import Swal from "sweetalert2";
+import Loader from "../../UI-elements/Loader";
 
 export default function ShopList() {
-  const [shops, setShops] = useState([]);
+  const [shops, setShops] = useState(null);
 
   useEffect(() => {
     fetch(`http://localhost:3000/api/shops`)
@@ -47,6 +48,10 @@ export default function ShopList() {
       }
     });
   };
+
+  if (!shops) {
+    return <Loader />;
+  }
 
   return (
     <div className="max-w-[85%] mx-auto mt-10">
