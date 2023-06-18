@@ -10,7 +10,9 @@ export default function OrderService() {
   const [service, setService] = useState(null);
   const navigate = useNavigate();
   const [fileUploadError, setFileUploadError] = useState(false);
-  const [numberOfPages, setNumberOfPages] = useState(null);
+  const [numberOfPages, setNumberOfPages] = useState(0);
+  const [highPriority, setHighPriority] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
 
   useEffect(() => {
     fetch(`http://localhost:3000/api/services/${serviceId}`)
@@ -20,65 +22,52 @@ export default function OrderService() {
       });
   }, [serviceId]);
 
-  const handleFileChange = (e) => {
-    const selectedFile = e.target.files[0];
-  };
-
   if (!service) {
     return <Loader />;
   }
+  let totalAmount = numberOfPages * service.SERVICE_CHARGE_PER_UNIT;
+  let platformCharge = totalAmount * 0.1;
+  let estimatedTime = numberOfPages * service.ESTIMATED_TIME_IN_MIN_REQUIRED;
+
+  const handleFileChange = (e) => {
+    setSelectedFile(e.target.files[0]);
+    setFileUploadError(false);
+    var reader = new FileReader();
+    reader.readAsBinaryString(e.target.files[0]);
+    reader.onloadend = function () {
+      var count = reader.result.match(/\/Type[\s]*\/Page[^s]/g).length;
+      console.log("Number of Pages:", count);
+
+      setNumberOfPages(count);
+    };
+  };
 
   const handleCreateShop = async (e) => {
     e.preventDefault();
 
-    const name = e.target.name.value;
-    const district = e.target.district.value;
-    const city = e.target.city.value;
-    const area = e.target.area.value;
-    const activeHour = e.target.activeHour.value;
-    const image = e.target.shopImage.files[0];
-    if (!image) {
-      setImageUploadError(true);
-      return;
-    } else setImageUploadError(false);
-    // Create a FormData object e.target.files[0])to send the form data along with the image
-    const formData = new FormData();
-    formData.append("name", name);
-    formData.append("district", district);
-    formData.append("city", city);
-    formData.append("area", area);
-    formData.append("activeHour", activeHour);
-    formData.append("image", image);
-
-    const shopData = {
-      name,
-      district,
-      city,
-      area,
-      activeHour,
-    };
-
-    console.log(shopData);
-
-    const response = await fetch("http://localhost:3000/api/shop/create", {
-      method: "POST", // or 'PUT'
-      body: formData,
-    });
-
-    const result = await response.json();
-    console.log("Success:", result);
-    if (result.shopCreated) {
-      toast("Shop Created Successfully!!", {
-        autoClose: 3000,
-        type: "success",
-        theme: "colored",
-      });
-    } else {
-      toast("Error in shop creation", {
-        type: "error",
-        theme: "colored",
-      });
+    if (!selectedFile) {
+      setFileUploadError(true);
     }
+
+    // const response = await fetch("http://localhost:3000/api/shop/create", {
+    //   method: "POST", // or 'PUT'
+    //   body: formData,
+    // });
+
+    // const result = await response.json();
+    // console.log("Success:", result);
+    // if (result.shopCreated) {
+    //   toast("Shop Created Successfully!!", {
+    //     autoClose: 3000,
+    //     type: "success",
+    //     theme: "colored",
+    //   });
+    // } else {
+    //   toast("Error in shop creation", {
+    //     type: "error",
+    //     theme: "colored",
+    //   });
+    // }
   };
 
   return (
@@ -156,6 +145,7 @@ export default function OrderService() {
                         class="hidden"
                         accept="application/pdf"
                         onChange={handleFileChange}
+                        required
                       />
                       {fileUploadError && (
                         <div className="text-red-500">
@@ -165,28 +155,36 @@ export default function OrderService() {
                     </label>
                   </div>
                 </div>
-                {/* {previewURL} */}
               </div>
 
               <div className="flex flex-col">
-                <div className="flex justify-between font-mono mt-6 border px-6 py-4 hover:shadow-md cursor-pointer transition-all">
+                <div className="flex justify-between font-mono mt-6 border px-6 py-3 hover:shadow-md cursor-pointer transition-all">
                   <h3 className="text-xl font-semibold">Order Date & Time: </h3>
                   <span>{new Date().toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between font-mono border px-6 py-4 hover:shadow-md cursor-pointer transition-all">
-                  <h3 className="text-xl font-semibold">Order Amount: </h3>
-                  <span>{new Date().toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between font-mono border px-6 py-4 hover:shadow-md cursor-pointer transition-all">
+                <div className="flex justify-between font-mono border px-6 py-3 hover:shadow-md cursor-pointer transition-all">
                   <h3 className="text-xl font-semibold">Estimated Time: </h3>
-                  <span>{new Date().toLocaleString()}</span>
+                  <span>{estimatedTime} Min</span>
                 </div>
+                <div className="flex justify-between font-mono border px-6 py-3 hover:shadow-md cursor-pointer transition-all">
+                  <h3 className="text-xl font-semibold">Order Amount: </h3>
+                  <span>{Math.round(totalAmount)} BDT</span>
+                </div>
+                <div className="flex justify-between font-mono border px-6 py-3 hover:shadow-md cursor-pointer transition-all">
+                  <h3 className="text-xl font-semibold">Platform Charge: </h3>
+                  <span>{Math.round(platformCharge)} BDT</span>
+                </div>
+                <div className="flex justify-between font-mono border px-6 py-3 hover:shadow-md cursor-pointer transition-all">
+                  <h3 className="text-xl font-semibold">Total Charge: </h3>
+                  <span>{Math.round(platformCharge + totalAmount)} BDT</span>
+                </div>
+
                 <label class="relative inline-flex items-center mr-5 mt-10 cursor-pointer">
                   <input
                     type="checkbox"
                     class="sr-only peer"
-                    // checked={availability ? true : false}
-                    // onChange={() => setAvailability((prev) => (prev ? 0 : 1))}
+                    checked={highPriority}
+                    onChange={() => setHighPriority((prev) => !prev)}
                   />
                   <div class="w-11 h-6 bg-gray-200 rounded-full peer dark:bg-gray-700 peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-green-600"></div>
                   <span class="ml-3 text-md font-medium text-green-600 dark:text-gray-300">
