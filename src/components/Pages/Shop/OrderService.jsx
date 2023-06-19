@@ -157,7 +157,7 @@ export default function OrderService() {
                   <div class="flex items-center justify-center w-full">
                     <label
                       for="dropzone-file"
-                      class="flex flex-col items-center justify-center w-full h-60 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600"
+                      class="flex flex-col items-center justify-center w-full h-50 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600"
                     >
                       <div class="flex flex-col items-center justify-center pt-5 pb-6">
                         <svg
@@ -200,6 +200,18 @@ export default function OrderService() {
                     </label>
                   </div>
                 </div>
+                <label class="relative inline-flex items-center mr-5  cursor-pointer">
+                  <input
+                    type="checkbox"
+                    class="sr-only peer"
+                    checked={highPriority}
+                    onChange={() => setHighPriority((prev) => !prev)}
+                  />
+                  <div class="w-11 h-6 bg-gray-200 rounded-full peer dark:bg-gray-700 peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-green-600"></div>
+                  <span class="ml-3 text-md font-medium text-green-600 dark:text-gray-300">
+                    Make this order higher priority
+                  </span>
+                </label>
               </div>
 
               <div className="flex flex-col">
@@ -234,23 +246,22 @@ export default function OrderService() {
                     {platformCharge} BDT
                   </span>
                 </div>
+                {highPriority && (
+                  <div className="flex text-green-500 justify-between font-mono border px-6 py-3 hover:shadow-md cursor-pointer transition-all">
+                    <h3 className="text-xl font-semibold">
+                      High Priority Charge:{" "}
+                    </h3>
+                    <span>
+                      {`${serviceCharge} x 5% = `}
+                      {Math.round(serviceCharge * 0.05)} BDT
+                    </span>
+                  </div>
+                )}
                 <div className="flex justify-between font-mono border px-6 py-3 hover:shadow-md cursor-pointer transition-all">
                   <h3 className="text-xl font-semibold">Total Charge: </h3>
                   <span>{totalCharge} BDT</span>
                 </div>
 
-                <label class="relative inline-flex items-center mr-5 mt-10 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    class="sr-only peer"
-                    checked={highPriority}
-                    onChange={() => setHighPriority((prev) => !prev)}
-                  />
-                  <div class="w-11 h-6 bg-gray-200 rounded-full peer dark:bg-gray-700 peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-green-600"></div>
-                  <span class="ml-3 text-md font-medium text-green-600 dark:text-gray-300">
-                    Make this order higher priority
-                  </span>
-                </label>
                 <div className="col-span-full mt-10 ml-auto">
                   <button
                     type="submit"
