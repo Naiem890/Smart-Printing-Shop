@@ -95,6 +95,33 @@ app.get("/api/shops", async (req, res, next) => {
   // res.send([]);
 });
 
+app.get("/api/shops/location", async (req, res) => {
+  try {
+    const districtPromise = query(
+      "SELECT DISTINCT SHOP_LOCATION_DISTRICT FROM SHOP"
+    ).then((result) => result.rows);
+
+    const cityPromise = query(
+      "SELECT DISTINCT SHOP_LOCATION_CITY FROM SHOP"
+    ).then((result) => result.rows);
+
+    const areaPromise = query(
+      "SELECT DISTINCT SHOP_LOCATION_AREA FROM SHOP"
+    ).then((result) => result.rows);
+
+    const [district, city, area] = await Promise.all([
+      districtPromise,
+      cityPromise,
+      areaPromise,
+    ]);
+
+    res.send({ district, city, area });
+  } catch (error) {
+    console.log(error);
+    res.send({ error: "Failed to retrieve shop locations" });
+  }
+});
+
 app.post("/api/shop/create", upload.single("image"), async (req, res, next) => {
   console.log("req.body", req.body);
   const { name, district, city, area, activeHour } = req.body;
@@ -466,6 +493,27 @@ app.post(
     }
   }
 );
+
+app.get("/api/orders/", async (req, res) => {
+  const { cust_id, shop_id } = req.query;
+
+  let queryString;
+
+  if (cust_id) {
+    queryString = `select * from orders where cust_id = 'Solaiman'`;
+  } else if (shop_id) {
+    queryString = `select * from orders
+    join contains using(order_id)
+    join provides using(service_id)
+    where shop_id = '${shop_id}'`;
+  }
+
+  console.log("cust_id", cust_id);
+
+  const orders = await query(queryString).then((data) => data.rows);
+  console.log(orders);
+  res.send(orders);
+});
 
 app.post("/api/auth/login/customer", async (req, res, next) => {
   const { email, password } = req.body;
