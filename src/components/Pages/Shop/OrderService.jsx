@@ -203,21 +203,36 @@ export default function OrderService() {
               </div>
 
               <div className="flex flex-col">
-                <div className="flex justify-between font-mono mt-6 border px-6 py-3 hover:shadow-md cursor-pointer transition-all">
+                {/* <div className="flex justify-between font-mono mt-6 border px-6 py-3 hover:shadow-md cursor-pointer transition-all">
                   <h3 className="text-xl font-semibold">Order Date & Time: </h3>
                   <span>{new Date().toLocaleString()}</span>
+                </div> */}
+                <div className="flex justify-between font-mono border px-6 py-3 hover:shadow-md cursor-pointer transition-all">
+                  <h3 className="text-xl font-semibold">Number of pages: </h3>
+                  <span>
+                    {numberOfPages} {numberOfPages > 1 ? "Pages" : "Page"}
+                  </span>
                 </div>
                 <div className="flex justify-between font-mono border px-6 py-3 hover:shadow-md cursor-pointer transition-all">
                   <h3 className="text-xl font-semibold">Estimated Time: </h3>
-                  <span>{estimatedTime} Min</span>
+                  <span>
+                    {`${numberOfPages} x ${service?.ESTIMATED_TIME_IN_MIN_REQUIRED} Min = `}
+                    {estimatedTime} Min
+                  </span>
                 </div>
                 <div className="flex justify-between font-mono border px-6 py-3 hover:shadow-md cursor-pointer transition-all">
                   <h3 className="text-xl font-semibold">Order Amount: </h3>
-                  <span>{serviceCharge} BDT</span>
+                  <span>
+                    {`${numberOfPages} x ${service?.SERVICE_CHARGE_PER_UNIT} BDT = `}
+                    {serviceCharge} BDT
+                  </span>
                 </div>
                 <div className="flex justify-between font-mono border px-6 py-3 hover:shadow-md cursor-pointer transition-all">
                   <h3 className="text-xl font-semibold">Platform Charge: </h3>
-                  <span>{platformCharge} BDT</span>
+                  <span>
+                    {`${serviceCharge} x 10% = `}
+                    {platformCharge} BDT
+                  </span>
                 </div>
                 <div className="flex justify-between font-mono border px-6 py-3 hover:shadow-md cursor-pointer transition-all">
                   <h3 className="text-xl font-semibold">Total Charge: </h3>
