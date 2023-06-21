@@ -25,17 +25,17 @@ export default function OrderService() {
   if (!service) {
     return <Loader />;
   }
-  let serviceCharge = Math.round(
+  let serviceCharge = Math.ceil(
     numberOfPages * service.SERVICE_CHARGE_PER_UNIT
   );
-  let platformCharge = Math.round(serviceCharge * 0.1);
+  let platformCharge = Math.ceil(serviceCharge * 0.1);
   let totalCharge =
     serviceCharge +
     platformCharge +
-    (highPriority ? Math.round(serviceCharge * 0.05) : 0);
+    (highPriority ? Math.ceil(serviceCharge * 0.05) : 0);
   let estimatedTime = numberOfPages * service.ESTIMATED_TIME_IN_MIN_REQUIRED;
 
-  console.log(serviceCharge, totalCharge, Math.round(serviceCharge * 0.05));
+  console.log(serviceCharge, totalCharge, Math.ceil(serviceCharge * 0.05));
   const handleFileChange = (e) => {
     setSelectedFile(e.target.files[0]);
     setFileUploadError(false);
@@ -253,7 +253,7 @@ export default function OrderService() {
                     </h3>
                     <span>
                       {`${serviceCharge} x 5% = `}
-                      {Math.round(serviceCharge * 0.05)} BDT
+                      {Math.ceil(serviceCharge * 0.05)} BDT
                     </span>
                   </div>
                 )}
