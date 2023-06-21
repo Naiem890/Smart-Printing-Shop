@@ -79,6 +79,7 @@ export default function OrderService() {
     formData.append("orderAmount", totalCharge);
     formData.append("orderDate", new Date());
     formData.append("cust_id", custId);
+    formData.append("serviceId", serviceId);
 
     try {
       const response = await fetch("http://localhost:3000/api/order/create", {
