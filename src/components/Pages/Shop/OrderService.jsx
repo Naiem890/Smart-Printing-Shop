@@ -54,12 +54,25 @@ export default function OrderService() {
 
     const custId = localStorage.getItem("CUST_ID");
 
+    console.log("selectedFile", selectedFile);
     if (!selectedFile) {
+      toast("Please upload your file!!!", {
+        type: "error",
+        theme: "colored",
+      });
       setFileUploadError(true);
       return;
     }
 
     if (!custId) {
+      toast("Please login to order!!!", {
+        type: "error",
+        theme: "colored",
+      });
+
+      setTimeout(() => {
+        navigate("/login");
+      }, 3000);
       return;
     }
 
@@ -191,7 +204,6 @@ export default function OrderService() {
                         class="hidden"
                         accept="application/pdf"
                         onChange={handleFileChange}
-                        required
                       />
                       {fileUploadError && (
                         <div className="text-red-500">
