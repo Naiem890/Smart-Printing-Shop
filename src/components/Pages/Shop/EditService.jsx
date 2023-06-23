@@ -221,9 +221,7 @@ export default function EditService() {
           <div className="col-span-1 ml-10 mb-10">
             <div className="flex flex-col h-12">
               <h1 className="text-2xl font-bold">Service List</h1>
-              <p className="text-gray-500">
-                You can see all the service info under this shop
-              </p>
+              <p className="text-gray-500">Select any service to update info</p>
             </div>
           </div>
           <div className="col-span-2">
@@ -243,8 +241,11 @@ export default function EditService() {
                     name="serviceType"
                     required={true}
                     value={type}
+                    disabled={editorMode}
                     onChange={(e) => setType(e.target.value)}
-                    class="bg-white border h-12 border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 py-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-gray-400 dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                    class={` border h-12 border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 py-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-gray-400 dark:focus:ring-blue-500 dark:focus:border-blue-500 ${
+                      editorMode ? "bg-gray-200 cursor-not-allowed" : ""
+                    }`}
                   >
                     <option value="">Select service type</option>
                     {editorMode
@@ -324,14 +325,6 @@ export default function EditService() {
                 </div>
               </div>
               <div className="">
-                {editorMode && (
-                  <button
-                    onClick={handleDelete}
-                    class={`inline-flex justify-center h-12 w-full text-center sm:w-auto items-center text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 sm:mr-3`}
-                  >
-                    Delete Service
-                  </button>
-                )}
                 <button
                   type="submit"
                   class={`inline-flex justify-center h-12 w-full text-center sm:w-auto items-center text-white ${
@@ -342,6 +335,22 @@ export default function EditService() {
                 >
                   {editorMode ? "Update" : "Add"} Service
                 </button>
+                {editorMode && (
+                  <button
+                    onClick={handleDelete}
+                    class={`inline-flex justify-center h-12 w-full text-center sm:w-auto items-center text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 sm:mr-3`}
+                  >
+                    Delete Service
+                  </button>
+                )}
+                {editorMode && (
+                  <button
+                    onClick={() => setEditorMode(false)}
+                    class={`inline-flex justify-center h-12 w-full text-center sm:w-auto items-center text-white bg-gray-600 hover:bg-gray-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 sm:mr-3`}
+                  >
+                    Cancel
+                  </button>
+                )}
               </div>
             </form>
           </div>

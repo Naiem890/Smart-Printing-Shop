@@ -5,6 +5,7 @@ import {
   Cog6ToothIcon,
   EyeIcon,
   PencilIcon,
+  QueueListIcon,
   TrashIcon,
 } from "@heroicons/react/24/solid";
 
@@ -41,6 +42,13 @@ export default function ShopCardWithEditAndDelete({ shop, handleDelete }) {
                 className="border-2 rounded-full border-purple-200 w-10 h-10 flex justify-center items-center"
               >
                 <Cog6ToothIcon className="h-6 w-6 text-purple-600" />
+              </Link>
+              <Link
+                title="Order List"
+                to={`/shop-owner/orders/${shop.SHOP_ID}`}
+                className="border-2 rounded-full border-cyan-200 w-10 h-10 flex justify-center items-center"
+              >
+                <QueueListIcon className="h-6 w-6 text-cyan-600" />
               </Link>
               <Link
                 title="Edit Shop"

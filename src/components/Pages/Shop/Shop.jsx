@@ -6,7 +6,7 @@ import {
   MapPinIcon,
   StarIcon,
 } from "@heroicons/react/24/solid";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import Loader from "../../UI-elements/Loader";
 
 export default function Shop() {
@@ -15,6 +15,7 @@ export default function Shop() {
   const [selectedService, setSelectedService] = useState("");
   const [shopImage, setShopImage] = useState(null);
   const navigate = useNavigate();
+  
   useEffect(() => {
     fetch(`http://localhost:3000/api/shops/${shopId}`)
       .then((res) => res.json())
@@ -34,7 +35,7 @@ export default function Shop() {
   }
 
   return (
-    <div className="max-w-[85%] mx-auto mt-10">
+    <div className="max-w-[85%] mx-auto mt-10 mb-20">
       <div>
         <div className="flex gap-8 items-center">
           <a href="/search" className="">
@@ -134,11 +135,9 @@ export default function Shop() {
                   ))}
                 </ul>
                 <div className="mt-10">
-                  <button
+                  <Link
                     disabled={!selectedService}
-                    onClick={() =>
-                      navigate(`/order-service/${selectedService}`)
-                    }
+                    to={`/order-service/${selectedService}`}
                     class={`inline-flex items-center justify-center px-5 py-3 mr-3 text-base font-medium text-center text-white rounded-lg 
                     bg-blue-700 hover:bg-primary-800 focus:ring-4 disabled:bg-slate-400 disabled:cursor-not-allowed focus:ring-primary-300 dark:focus:ring-primary-900`}
                   >
@@ -155,7 +154,7 @@ export default function Shop() {
                         clip-rule="evenodd"
                       ></path>
                     </svg>
-                  </button>
+                  </Link>
                 </div>
               </div>
             </div>
