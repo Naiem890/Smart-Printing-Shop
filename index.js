@@ -468,7 +468,8 @@ app.post(
   async (req, res, next) => {
     console.log(req.body);
     try {
-      const { orderPriority, orderAmount, orderDate, cust_id } = req.body;
+      const { orderPriority, orderAmount, orderDate, cust_id, serviceId } =
+        req.body;
       const orderDocument = req.file.buffer; // Retrieve the file buffer from multer
 
       const orderId = "O" + uuidv4().slice(0, 9);
@@ -484,9 +485,31 @@ app.post(
       };
 
       // Execute the query with the provided parameters
-      await query(queryString, params);
+      const orderInserted = await query(queryString, params).then((result) =>
+        result.rowsAffected == 1 ? true : false
+      );
 
-      res.status(201).json({ message: "Order placed successfully" });
+      if (orderInserted) {
+        const queryString = `INSERT INTO contains (service_id, order_id) VALUES (:serviceId, :orderId)`;
+
+        const params = {
+          serviceId,
+          orderId,
+        };
+
+        // Execute the query with the provided parameters
+        const containsInserted = await query(queryString, params).then(
+          (result) => (result.rowsAffected == 1 ? true : false)
+        );
+
+        if (containsInserted) {
+          res.status(201).json({ message: "Order placed successfully" });
+        } else {
+          res.status(400).json({ message: "Error during order place" });
+        }
+      } else {
+        res.status(400).json({ message: "Error during order place" });
+      }
     } catch (error) {
       console.error("Error placing order:", error);
       res.status(500).json({ message: "Error placing order" });
@@ -500,19 +523,113 @@ app.get("/api/orders/", async (req, res) => {
   let queryString;
 
   if (cust_id) {
-    queryString = `select * from orders where cust_id = 'Solaiman'`;
+    queryString = `select * from orders where cust_id = '${cust_id}'`;
   } else if (shop_id) {
     queryString = `select * from orders
     join contains using(order_id)
     join provides using(service_id)
+    join shop using(shop_id)
     where shop_id = '${shop_id}'`;
   }
 
-  console.log("cust_id", cust_id);
+  console.log("cust_id queryString", cust_id, queryString);
 
   const orders = await query(queryString).then((data) => data.rows);
   console.log(orders);
   res.send(orders);
+});
+
+app.get("/api/orders/:orderId", async (req, res) => {
+  const { orderId } = req.params;
+
+  const orderData = await query(`select * from orders 
+  where order_id = '${orderId}'`).then((result) => result.rows[0]);
+
+  console.log(orderData);
+
+  res.send(orderData);
+});
+
+// app.delete("/api/orders/:orderId", async (req, res) => {
+//   try {
+//     const { orderId } = req.params;
+
+//     console.log(orderId);
+
+//     const containsDeleted = await query(
+//       `DELETE FROM contains WHERE order_id = '${orderId}'`
+//     );
+
+//     console.log(containsDeleted);
+
+//     if (containsDeleted) {
+//       const orderDeleted = await query(
+//         `DELETE FROM orders WHERE order_id = '${orderId}'`
+//       );
+
+//       console.log(orderDeleted);
+//       if (orderDeleted) {
+//         res.status().send({ message: "Order deleted successfully" });
+//       } else {
+//         res.send({ message: "Error occurred during order delete" });
+//       }
+//     } else {
+//       res.send({ message: "Error occurred during order delete" });
+//     }
+//   } catch (error) {
+//     console.error("Error deleting order:", error);
+//     res.status(500).send({ error: "Failed to delete order" });
+//   }
+// });
+
+app.delete("/api/orders/:orderId", async (req, res) => {
+  try {
+    const { orderId } = req.params;
+
+    const containsDeleted = await query(
+      `DELETE FROM contains WHERE order_id = '${orderId}'`
+    ).then((result) => (result.rowsAffected > 0 ? true : false));
+
+    const orderDeleted = await query(
+      `DELETE FROM orders WHERE order_id = '${orderId}' AND ORDER_STATUS = 'Queued'`
+    ).then((result) => (result.rowsAffected > 0 ? true : false));
+
+    if (containsDeleted && orderDeleted) {
+      res.status(200).send({ message: "Order deleted successfully" });
+    } else {
+      res.status(404).send({
+        message: "Order not found or already accepted by the shop owner!",
+      });
+    }
+  } catch (error) {
+    console.error("Error deleting order:", error);
+    res.status(500).send({ error: "Failed to delete order" });
+  }
+});
+
+app.delete("/api/orders2/:orderId", async (req, res) => {
+  try {
+    const { orderId } = req.params;
+
+    const result = await query(
+      `BEGIN
+         :result := PRINTKORUN.delete_order(:orderId);
+       END;`,
+      {
+        result: { dir: OracleDB.BIND_OUT, type: OracleDB.STRING, maxSize: 200 },
+        orderId: orderId,
+      }
+    );
+
+    const message = result.outBinds.result;
+
+    res.status(200).send({ message: message });
+  } catch (error) {
+    console.error("Error deleting order:", error);
+    res
+      .status(500)
+      .send({ error: "Failed to delete order. Please try again later." });
+  }
 });
 
 app.post("/api/auth/login/customer", async (req, res, next) => {
