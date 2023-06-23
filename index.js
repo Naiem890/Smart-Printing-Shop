@@ -468,10 +468,16 @@ app.post(
   async (req, res, next) => {
     console.log(req.body);
     try {
-      const { orderPriority, orderAmount, orderDate, cust_id, serviceId } =
-        req.body;
+      const {
+        orderPriority,
+        orderAmount,
+        orderDate,
+        cust_id,
+        serviceId,
+        paymentId,
+      } = req.body;
       const orderDocument = req.file.buffer; // Retrieve the file buffer from multer
-
+      console.log(req.body);
       const orderId = "O" + uuidv4().slice(0, 9);
       // Save the order data to the database
       const queryString = `INSERT INTO orders (order_id, order_document, order_status, order_priority, order_amount, order_delivery_time, order_date, cust_id) VALUES (:orderId, :orderDocument, 'Queued', :orderPriority, :orderAmount, NULL, SYSDATE, :cust_id)`;
@@ -503,7 +509,23 @@ app.post(
         );
 
         if (containsInserted) {
-          res.status(201).json({ message: "Order placed successfully" });
+          const queryString = `INSERT INTO payment (payment_transfer_id,payment_date,payment_amount,order_id) VALUES (:paymentId, SYSDATE, :orderAmount, :orderId)`;
+
+          const params = {
+            paymentId,
+            orderAmount,
+            orderId,
+          };
+
+          // Execute the query with the provided parameters
+          const paymentInserted = await query(queryString, params).then(
+            (result) => (result.rowsAffected == 1 ? true : false)
+          );
+          if (paymentInserted) {
+            res.status(201).json({ message: "Order placed successfully" });
+          } else {
+            res.status(400).json({ message: "Error during payment" });
+          }
         } else {
           res.status(400).json({ message: "Error during order place" });
         }
@@ -537,6 +559,26 @@ app.get("/api/orders/", async (req, res) => {
   const orders = await query(queryString).then((data) => data.rows);
   console.log(orders);
   res.send(orders);
+});
+
+app.put("/api/orders/update/:orderId", async (req, res) => {
+  const { orderId } = req.params;
+  const { orderStatus } = req.body;
+  if (orderStatus) {
+    const queryString = `update orders set ORDER_STATUS = :orderStatus where order_id = :orderId `;
+
+    const params = { orderStatus, orderId };
+
+    const orderUpdated = await query(queryString, params).then((result) =>
+      result.rowsAffected == 1 ? true : false
+    );
+
+    if (orderUpdated) {
+      res.status(200).send("Order updated successfully!");
+    } else {
+      res.status(404).send("Order not found!");
+    }
+  }
 });
 
 app.get("/api/orders/:orderId", async (req, res) => {
