@@ -1,7 +1,58 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 export default function ShopOwnerLogin() {
+  const navigate = useNavigate();
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+
+    const email = e.target.email.value;
+    const password = e.target.password.value;
+
+    const user = { email, password };
+
+    try {
+      const response = await fetch(
+        "http://localhost:3000/api/auth/login/shop-owner",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(user),
+        }
+      );
+
+      if (response.ok) {
+        const result = await response.json();
+        toast(`Welcome ${result.FIRST_NAME}!!!`, {
+          type: "success",
+          theme: "colored",
+        });
+        localStorage.clear();
+        localStorage.setItem("SHOP_OWNER_ID", result.SHOP_OWNER_ID);
+        localStorage.setItem("SHOP_ID", result.SHOP_ID);
+
+        navigate("/search");
+      } else {
+        const errorData = await response.json();
+        console.error("Error:", errorData.error);
+        // Display an error message to the user, e.g., using a toast notification library
+        toast(`Error: ${errorData.error}`, {
+          type: "error",
+          theme: "colored",
+        });
+      }
+    } catch (error) {
+      toast(`Error: ${error}`, {
+        type: "error",
+        theme: "colored",
+      });
+    }
+  };
+
   return (
     <div className="bg-slate-100 pt-20">
       <div class=" flex flex-col md:flex-row items-start justify-center gap-4 md:gap-24 px-6 pt-6  mx-auto md:h-screen md:-mt-14 pt:mt-0 dark:bg-gray-900 max-w-screen-xl">
@@ -17,7 +68,7 @@ export default function ShopOwnerLogin() {
               <Link to="/shop-owner/sign-up">Sign Up</Link>
             </h2>
           </div>
-          <form class="mt-8 space-y-6" action="#">
+          <form class="mt-8 space-y-6" onSubmit={handleLogin} action="#">
             <div>
               <label
                 for="email"

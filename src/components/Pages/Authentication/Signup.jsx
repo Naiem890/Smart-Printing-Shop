@@ -32,6 +32,7 @@ export default function Signup() {
       console.log("Success:", result);
 
       if (result.userCreated) {
+        localStorage.clear();
         localStorage.setItem("CUST_ID", result.CUST_ID);
 
         // User created successfully, navigate to other page

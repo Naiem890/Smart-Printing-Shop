@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import InstructionCardShopOwner from "./InstructionCardShopOwner";
 import { toast } from "react-toastify";
 import { ArrowLeftIcon } from "@heroicons/react/24/solid";
@@ -7,6 +7,13 @@ import { Link, useNavigate } from "react-router-dom";
 export default function CreateShop() {
   const navigate = useNavigate();
   const [imageUploadError, setImageUploadError] = useState(false);
+  const [shop_owner_id] = useState(localStorage.getItem("SHOP_OWNER_ID"));
+
+  useEffect(() => {
+    if (!shop_owner_id) {
+      navigate("/shop-owner/login");
+    }
+  }, [shop_owner_id]);
 
   const handleCreateShop = async (e) => {
     e.preventDefault();
@@ -17,10 +24,12 @@ export default function CreateShop() {
     const area = e.target.area.value;
     const activeHour = e.target.activeHour.value;
     const image = e.target.shopImage.files[0];
+
     if (!image) {
       setImageUploadError(true);
       return;
     } else setImageUploadError(false);
+    
     // Create a FormData object e.target.files[0])to send the form data along with the image
     const formData = new FormData();
     formData.append("name", name);
@@ -28,6 +37,8 @@ export default function CreateShop() {
     formData.append("city", city);
     formData.append("area", area);
     formData.append("activeHour", activeHour);
+    formData.append("shop_owner_id", shop_owner_id);
+
     formData.append("image", image);
 
     const shopData = {
@@ -37,8 +48,6 @@ export default function CreateShop() {
       area,
       activeHour,
     };
-
-    console.log(shopData);
 
     const response = await fetch("http://localhost:3000/api/shop/create", {
       method: "POST", // or 'PUT'
@@ -53,6 +62,7 @@ export default function CreateShop() {
         type: "success",
         theme: "colored",
       });
+      localStorage.setItem("SHOP_ID", result.shop_id);
     } else {
       toast("Error in shop creation", {
         type: "error",

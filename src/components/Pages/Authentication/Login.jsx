@@ -5,57 +5,58 @@ import { toast } from "react-toastify";
 export default function Login() {
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
+    const handleLogin = async (e) => {
+      e.preventDefault();
 
-    const email = e.target.email.value;
-    const password = e.target.password.value;
+      const email = e.target.email.value;
+      const password = e.target.password.value;
 
-    const user = { email, password };
+      const user = { email, password };
 
-    try {
-      const response = await fetch(
-        "http://localhost:3000/api/auth/login/customer",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(user),
+      try {
+        const response = await fetch(
+          "http://localhost:3000/api/auth/login/customer",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(user),
+          }
+        );
+
+        if (response.ok) {
+          const result = await response.json();
+          toast(`Welcome ${result.CUST_NAME}!!!`, {
+            type: "success",
+            theme: "colored",
+          });
+          localStorage.clear();
+          localStorage.setItem("CUST_ID", result.CUST_ID);
+          navigate("/search");
+        } else {
+          const errorData = await response.json();
+          console.error("Error:", errorData.error);
+          // Display an error message to the user, e.g., using a toast notification library
+          toast(`Error: ${errorData.error}`, {
+            type: "error",
+            theme: "colored",
+          });
         }
-      );
-
-      if (response.ok) {
-        const result = await response.json();
-        toast(`Welcome ${result.CUST_NAME}!!!`, {
-          type: "success",
-          theme: "colored",
-        });
-        localStorage.setItem("CUST_ID", result.CUST_ID);
-        navigate("/search");
-      } else {
-        const errorData = await response.json();
-        console.error("Error:", errorData.error);
-        // Display an error message to the user, e.g., using a toast notification library
-        toast(`Error: ${errorData.error}`, {
+      } catch (error) {
+        toast(`Error: ${error}`, {
           type: "error",
           theme: "colored",
         });
       }
-    } catch (error) {
-      toast(`Error: ${error}`, {
-        type: "error",
-        theme: "colored",
-      });
-    }
-  };
+    };
 
   return (
     <div className="bg-slate-100 pt-20">
       <div class=" flex flex-col md:flex-row items-start justify-center gap-4 md:gap-24 px-6 pt-6  mx-auto md:h-screen md:-mt-14 pt:mt-0 dark:bg-gray-900 max-w-screen-xl">
         <div className="w-full">
           <img src="/images/authentication/login-illustration.png" alt="" />
-        </div>
+        </div>             
         <div class="w-full max-w-xl p-6 space-y-8 sm:p-8 bg-white rounded-lg shadow dark:bg-gray-800">
           <div className="flex gap-6">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">

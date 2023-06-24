@@ -9,9 +9,6 @@ import { Buffer } from "buffer";
 import {
   CheckCircleIcon,
   DocumentArrowDownIcon,
-  NoSymbolIcon,
-  PencilIcon,
-  TrashIcon,
 } from "@heroicons/react/24/outline";
 import OrderStatus from "./OrderStatus";
 
@@ -171,32 +168,32 @@ export default function MyOrders() {
                           {order.ORDER_ID}
                         </div>
                       </div>
-                      <div className="">
+                      <div>
                         <h3 className="text-sm">Order Priority</h3>
                         <div className="text-lg font-semibold">
                           {order.ORDER_PRIORITY}
                         </div>
                       </div>
-                      <div className="">
+                      <div>
                         <h3 className="text-sm">Order Status</h3>
                         <div className="text-lg font-semibold">
                           {order.ORDER_STATUS}
                         </div>
                       </div>
-                      <div className="">
+                      <div>
                         <h3 className="text-sm">Order Date</h3>
                         <div className="text-sm font-semibold mt-1 flex flex-col">
                           {new Date(order.ORDER_DATE).toLocaleString()}
                         </div>
                       </div>
 
-                      <div className="">
+                      <div>
                         <h3 className="text-sm">Payment Status</h3>
                         <div className="text-lg font-semibold">
                           {order.PAYMENT_STATUS}
                         </div>
                       </div>
-                      <div className="ml-4">
+                      <div>
                         <h3 className="text-sm">Delivery Time</h3>
                         <div className="text-sm font-semibold">
                           {order.ORDER_DELIVERY_TIME
@@ -220,7 +217,7 @@ export default function MyOrders() {
                             className="flex items-center gap-2 text-green-600"
                           >
                             <DocumentArrowDownIcon className="h-8 w-8" />
-                            {/* <span className="">Download</span> */}
+                            {/* <span>Download</span> */}
                           </a>
                         </div>
                         {/* <div className=" self-center">
