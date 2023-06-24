@@ -25,7 +25,7 @@ const middleware = [
 app.use(middleware);
 
 // Shops apis
-app.get("/api/shops", async (req, res, next) => {
+app.get("/api/shops", async (req, res) => {
   const search_by_service = (req.query.search_by_service || "").toUpperCase();
   const district = (req.query.district || "").toUpperCase();
   const city = (req.query.city || "").toUpperCase();
@@ -122,19 +122,15 @@ app.get("/api/shops/location", async (req, res) => {
   }
 });
 
-app.post("/api/shop/create", upload.single("image"), async (req, res, next) => {
+app.post("/api/shop/create", upload.single("image"), async (req, res) => {
   console.log("req.body", req.body);
-  const { name, district, city, area, activeHour } = req.body;
+  const { name, district, city, area, activeHour, shop_owner_id } = req.body;
   const image = req.file.buffer;
 
   console.log("img", image);
 
-  var shop_id = "A" + uuidv4().slice(0, 11);
+  var shop_id = "A" + uuidv4().replace(/-/g, "").slice(0, 11);
   console.log(shop_id);
-
-  // const result = await query(
-  //   `INSERT INTO shop (shop_id, shop_name, shop_location_district, shop_location_city, shop_location_area, shop_active_hours) VALUES ('${shop_id}', '${name}', '${district}', '${city}', '${area}', '${activeHour}')`
-  // );
 
   try {
     const result = await query(
@@ -148,12 +144,22 @@ app.post("/api/shop/create", upload.single("image"), async (req, res, next) => {
         activeHour,
         image: { type: OracleDB.BLOB, val: image },
       }
-    );
-
+    ).then((data) => data.rowsAffected == 1);
     console.log("result", result);
-    res
-      .status(200)
-      .send({ shopCreated: result.rowsAffected == 1 ? true : false });
+
+    if (result) {
+      await query(
+        `UPDATE ShopOwner
+        SET shop_id = :shop_id
+        WHERE shop_owner_id = :shop_owner_id`,
+        {
+          shop_id,
+          shop_owner_id,
+        }
+      );
+    }
+
+    res.status(200).send({ shopCreated: result, shop_id });
   } catch (error) {
     console.error(error);
     res
@@ -163,7 +169,7 @@ app.post("/api/shop/create", upload.single("image"), async (req, res, next) => {
   // res.send();
 });
 
-app.put("/api/shop/update", upload.single("image"), async (req, res, next) => {
+app.put("/api/shop/update", upload.single("image"), async (req, res) => {
   console.log(req.body);
   const { shop_id, name, district, city, area, activeHour } = req.body;
   const image = req.file ? req.file.buffer : null;
@@ -218,7 +224,7 @@ app.put("/api/shop/update", upload.single("image"), async (req, res, next) => {
   }
 });
 
-app.get("/api/shops/:shopId", async (req, res, next) => {
+app.get("/api/shops/:shopId", async (req, res) => {
   const { shopId } = req.params;
   console.log("Shopid", shopId);
 
@@ -245,7 +251,7 @@ app.get("/api/shops/:shopId", async (req, res, next) => {
   }
 });
 
-app.delete("/api/shops/:shopId", async (req, res, next) => {
+app.delete("/api/shops/:shopId", async (req, res) => {
   const { shopId } = req.params;
   console.log("Shopid", shopId);
 
@@ -278,7 +284,7 @@ app.delete("/api/shops/:shopId", async (req, res, next) => {
 });
 
 // Service apis
-app.get("/api/services/:serviceId", async (req, res, next) => {
+app.get("/api/services/:serviceId", async (req, res) => {
   const { serviceId } = req.params;
   console.log("serviceId", serviceId);
 
@@ -301,11 +307,11 @@ app.get("/api/services/:serviceId", async (req, res, next) => {
   }
 });
 
-app.post("/api/service/create", async (req, res, next) => {
+app.post("/api/service/create", async (req, res) => {
   console.log(req.body);
   const { shop_id, type, chargePerUnit, eta, availability } = req.body;
 
-  const service_id = "S" + uuidv4().slice(0, 9);
+  const service_id = "S" + uuidv4().replace(/-/g, "").slice(0, 9);
   console.log(service_id);
 
   try {
@@ -347,7 +353,7 @@ app.post("/api/service/create", async (req, res, next) => {
   }
 });
 
-app.put("/api/service/update", async (req, res, next) => {
+app.put("/api/service/update", async (req, res) => {
   console.log(req.body);
   const { service_id, type, chargePerUnit, eta, availability } = req.body;
 
@@ -394,7 +400,7 @@ app.put("/api/service/update", async (req, res, next) => {
   }
 });
 
-app.delete("/api/service/delete/:serviceId", async (req, res, next) => {
+app.delete("/api/service/delete/:serviceId", async (req, res) => {
   const serviceId = req.params.serviceId;
 
   try {
@@ -431,41 +437,10 @@ app.delete("/api/service/delete/:serviceId", async (req, res, next) => {
   }
 });
 
-app.post("/api/auth/signup/customer", async (req, res, next) => {
-  const { email, phone, name, password } = req.body;
-
-  console.log(req.body);
-
-  const cust_id = "CS" + uuidv4().slice(0, 8);
-  console.log(cust_id);
-
-  try {
-    const result = await query(
-      `INSERT INTO CUSTOMERS (cust_id, cust_name, cust_phone, cust_email, cust_pass) VALUES (:cust_id, :name, :phone, :email, :password)`,
-      {
-        cust_id,
-        name,
-        phone,
-        email,
-        password,
-      }
-    );
-
-    console.log("result", result);
-    res.send({
-      userCreated: result.rowsAffected == 1 ? true : false,
-      CUST_ID: cust_id,
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).send({ error: "An error occurred while signing up." });
-  }
-});
-
 app.post(
   "/api/order/create",
   upload.single("orderDocument"),
-  async (req, res, next) => {
+  async (req, res) => {
     console.log(req.body);
     try {
       const {
@@ -478,7 +453,7 @@ app.post(
       } = req.body;
       const orderDocument = req.file.buffer; // Retrieve the file buffer from multer
       console.log(req.body);
-      const orderId = "O" + uuidv4().slice(0, 9);
+      const orderId = "O" + uuidv4().replace(/-/g, "").slice(0, 9);
       // Save the order data to the database
       const queryString = `INSERT INTO orders (order_id, order_document, order_status, order_priority, order_amount, order_delivery_time, order_date, cust_id) VALUES (:orderId, :orderDocument, 'QUEUED', :orderPriority, :orderAmount, NULL, SYSDATE, :cust_id)`;
 
@@ -739,7 +714,7 @@ app.delete("/api/orders2/:orderId", async (req, res) => {
   }
 });
 
-app.post("/api/auth/login/customer", async (req, res, next) => {
+app.post("/api/auth/login/customer", async (req, res) => {
   const { email, password } = req.body;
   console.log(req.body);
 
@@ -755,6 +730,102 @@ app.post("/api/auth/login/customer", async (req, res, next) => {
       console.log(customer);
       // Customer login successful
       res.status(200).send(customer);
+    } else {
+      // Invalid credentials
+      res.status(401).send({ error: "Invalid credentials" });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ error: "An error occurred while logging in." });
+  }
+});
+
+app.post("/api/auth/signup/customer", async (req, res) => {
+  const { email, phone, name, password } = req.body;
+
+  console.log(req.body);
+
+  const cust_id = "CS" + uuidv4().replace(/-/g, "").slice(0, 8);
+  console.log(cust_id);
+
+  try {
+    const result = await query(
+      `INSERT INTO CUSTOMERS (cust_id, cust_name, cust_phone, cust_email, cust_pass) VALUES (:cust_id, :name, :phone, :email, :password)`,
+      {
+        cust_id,
+        name,
+        phone,
+        email,
+        password,
+      }
+    );
+
+    console.log("result", result);
+    res.send({
+      userCreated: result.rowsAffected == 1 ? true : false,
+      CUST_ID: cust_id,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ error: "An error occurred while signing up." });
+  }
+});
+
+app.post("/api/auth/signup/shop-owner", async (req, res) => {
+  const { email, phone, firstName, lastName, password } = req.body;
+
+  const shop_owner_id = "SW" + uuidv4().replace(/-/g, "").slice(0, 10);
+
+  try {
+    const result = await query(
+      `INSERT INTO ShopOwner (shop_owner_id, shop_owner_name, shop_owner_email, shop_owner_pass) VALUES (:shop_owner_id, NameObj(:firstname, :lastname), :email, :password)`,
+      {
+        shop_owner_id,
+        firstname: firstName,
+        lastname: lastName,
+        email,
+        password,
+      }
+    );
+
+    await query(`INSERT INTO ShopOwnerPhone VALUES (:shop_owner_id, :phone)`, {
+      shop_owner_id,
+      phone,
+    });
+
+    console.log("result", result);
+    res.send({
+      shopOwnerCreated: result.rowsAffected === 1,
+      SHOP_OWNER_ID: shop_owner_id,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ error: "An error occurred while signing up." });
+  }
+});
+
+app.post("/api/auth/login/shop-owner", async (req, res) => {
+  const { email, password } = req.body;
+  console.log(req.body);
+
+  try {
+    // Perform authentication logic here, e.g., checking credentials against the database
+    // You can use the query function or any other method to retrieve the customer details
+    const shopOwner = await query(
+      `SELECT SHOP_OWNER_ID, 
+      TREAT(SHOP_OWNER_NAME AS NAMEOBJ).FIRSTNAME as FIRST_NAME,
+      TREAT(SHOP_OWNER_NAME AS NAMEOBJ).LASTNAME as LAST_NAME, 
+      SHOP_OWNER_EMAIL,
+      SHOP_ID
+      FROM SHOPOWNER
+      WHERE SHOP_OWNER_EMAIL = :email AND SHOP_OWNER_PASS = :password`,
+      { email, password }
+    ).then((data) => data.rows[0]);
+
+    if (shopOwner) {
+      console.log(shopOwner);
+      // shopOwner login successful
+      res.status(200).send(shopOwner);
     } else {
       // Invalid credentials
       res.status(401).send({ error: "Invalid credentials" });
