@@ -540,26 +540,31 @@ app.post(
 );
 
 app.get("/api/orders/", async (req, res) => {
-  const { cust_id, shop_id } = req.query;
+  try {
+    const { cust_id, shop_id } = req.query;
 
-  let queryString;
+    let queryString;
 
-  if (cust_id) {
-    queryString = `select * from orders where cust_id = '${cust_id}'`;
-  } else if (shop_id) {
-    queryString = `select * from orders
-    join contains using(order_id)
-    join provides using(service_id)
-    join shop using(shop_id)
-    join payment using(order_id)
-    where shop_id = '${shop_id}'`;
+    if (cust_id) {
+      queryString = `select * from orders join payment using(order_id) where cust_id = '${cust_id}'`;
+    } else if (shop_id) {
+      queryString = `select * from orders
+      join contains using(order_id)
+      join provides using(service_id)
+      join shop using(shop_id)
+      join payment using(order_id)
+      where shop_id = '${shop_id}'`;
+    }
+
+    console.log("cust_id queryString", cust_id, queryString);
+
+    const orders = await query(queryString).then((data) => data.rows);
+    console.log(orders);
+    res.send(orders);
+  } catch (error) {
+    console.error("Error retrieving orders:", error);
+    res.status(500).send({ error: "Failed to retrieve orders" });
   }
-
-  console.log("cust_id queryString", cust_id, queryString);
-
-  const orders = await query(queryString).then((data) => data.rows);
-  console.log(orders);
-  res.send(orders);
 });
 
 app.put("/api/orders/update/:orderId", async (req, res) => {
@@ -569,11 +574,16 @@ app.put("/api/orders/update/:orderId", async (req, res) => {
 
   if (orderStatus) {
     const queryString = `update orders 
-          set ORDER_STATUS = :orderStatus 
-          where order_id = :orderId `;
+          set ORDER_STATUS = :orderStatus
+          ${
+            orderStatus.toUpperCase() == "DELIVERED"
+              ? ", ORDER_DELIVERY_TIME = SYSDATE"
+              : ""
+          }
+          where order_id = :orderId`;
 
     const params = { orderStatus, orderId };
-
+    console.log("queryString", queryString);
     const orderUpdated = await query(queryString, params).then((result) =>
       result.rowsAffected == 1 ? true : false
     );
@@ -598,14 +608,14 @@ app.put("/api/payment/update/:paymentId", async (req, res) => {
 
     const params = { paymentStatus, paymentId };
 
-    const orderUpdated = await query(queryString, params).then((result) =>
+    const paymentUpdated = await query(queryString, params).then((result) =>
       result.rowsAffected == 1 ? true : false
     );
 
-    if (orderUpdated) {
-      res.status(200).send({ message: "Order updated successfully!" });
+    if (paymentUpdated) {
+      res.status(200).send({ message: "Payment updated successfully!" });
     } else {
-      res.status(404).send({ message: "Order not found!" });
+      res.status(404).send({ message: "PaymentId not found!" });
     }
   }
 });
@@ -666,26 +676,37 @@ app.delete("/api/orders/:orderId", async (req, res) => {
 
     console.log("paymentId", paymentId);
 
-    const containsDeleted = await query(
-      `DELETE FROM contains WHERE order_id = '${orderId}'`
-    ).then((result) => (result.rowsAffected > 0 ? true : false));
-
     const orderDeleted = await query(
-      `DELETE FROM orders WHERE order_id = '${orderId}' AND ORDER_STATUS = 'QUEUED'`
+      `DELETE FROM orders WHERE order_id = '${orderId}' AND ORDER_STATUS IN ('QUEUED','CANCELED')`
     ).then((result) => (result.rowsAffected > 0 ? true : false));
 
-    const updatePayment = await query(
-      `update payment 
-      set payment_status = :paymentStatus 
-      where PAYMENT_TRANSFER_ID = :paymentId`,
-      { paymentStatus: "CANCELED", paymentId }
-    );
-    if (containsDeleted && orderDeleted) {
-      res.status(200).send({ message: "Order deleted successfully" });
-    } else {
+    console.log("orderDeleted", orderDeleted);
+
+    if (!orderDeleted) {
       res.status(404).send({
-        message: "Order not found or already accepted by the shop owner!",
+        message: "You can't delete this order!",
       });
+      return;
+    } else {
+      const containsDeleted = await query(
+        `DELETE FROM contains WHERE order_id = '${orderId}'`
+      ).then((result) => (result.rowsAffected > 0 ? true : false));
+
+      console.log("containsDeleted", containsDeleted);
+
+      const updatePayment = await query(
+        `update payment 
+        set payment_status = :paymentStatus 
+        where PAYMENT_TRANSFER_ID = :paymentId`,
+        { paymentStatus: "CANCELED", paymentId }
+      );
+      if (containsDeleted) {
+        res.status(200).send({ message: "Order deleted successfully" });
+      } else {
+        res.status(404).send({
+          message: "Order not found or already accepted by the shop owner!",
+        });
+      }
     }
   } catch (error) {
     console.error("Error deleting order:", error);
