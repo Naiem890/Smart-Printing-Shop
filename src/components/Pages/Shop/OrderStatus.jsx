@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Modal from "../../UI-elements/Modal";
 import {
   CheckBadgeIcon,
@@ -15,6 +15,9 @@ import { toast } from "react-toastify";
 
 export default function OrderStatus({ selectedOrder, setShowModal, reSet }) {
   const [order, setOrder] = useState(selectedOrder);
+  const [paymentStatus, setPaymentStatus] = useState("");
+  const [orderStatus, setOrderStatus] = useState("");
+
   const OrderStages = [
     {
       stageName: "Queued",
@@ -39,6 +42,13 @@ export default function OrderStatus({ selectedOrder, setShowModal, reSet }) {
     },
   ];
 
+  if (order?.ORDER_STATUS?.toUpperCase() === "CANCELED") {
+    OrderStages[0].done = false;
+    OrderStages[1].done = false;
+    OrderStages[2].done = false;
+    OrderStages[3].done = false;
+  }
+
   if (order?.ORDER_STATUS?.toUpperCase() === "QUEUED") {
     OrderStages[0].done = true;
   }
@@ -57,6 +67,20 @@ export default function OrderStatus({ selectedOrder, setShowModal, reSet }) {
     OrderStages[2].done = true;
     OrderStages[3].done = true;
   }
+
+  useEffect(() => {
+    console.log("order", order);
+    if (paymentStatus == "REJECTED") {
+      console.log("inside reject");
+      handleUpdateOrder("CANCELED");
+    }
+    if (paymentStatus == "ACCEPTED") {
+      console.log("inside accept");
+      handleUpdateOrder("PROCESSING");
+    }
+    setPaymentStatus("");
+    setOrderStatus("");
+  }, [paymentStatus]);
 
   const handleUpdateOrder = (status) => {
     Swal.fire({
@@ -78,7 +102,7 @@ export default function OrderStatus({ selectedOrder, setShowModal, reSet }) {
                 theme: "colored",
               }
             );
-          } else if (order.PAYMENT_STATUS == "REJECTED") {
+          } else if (order.PAYMENT_STATUS == "REJECTED" && !order.ORDER_STATUS=="CANCELED") {
             toast("You can't update the status for rejected payment orders!", {
               type: "warning",
               theme: "colored",
@@ -122,6 +146,7 @@ export default function OrderStatus({ selectedOrder, setShowModal, reSet }) {
       })
       .then(() => {
         reSet();
+        setOrderStatus(status);
       });
   };
 
@@ -138,50 +163,51 @@ export default function OrderStatus({ selectedOrder, setShowModal, reSet }) {
       showCancelButton: true,
       confirmButtonText: "Update",
       cancelButtonText: "Cancel",
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          const response = await fetch(
-            `http://localhost:3000/api/payment/update/${paymentId}`,
-            {
-              method: "PUT",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ paymentStatus }),
+    })
+      .then(async (result) => {
+        if (result.isConfirmed) {
+          try {
+            const response = await fetch(
+              `http://localhost:3000/api/payment/update/${paymentId}`,
+              {
+                method: "PUT",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ paymentStatus }),
+              }
+            );
+
+            const data = await response.json();
+
+            if (response.ok) {
+              toast(data.message, {
+                type: "success",
+                theme: "colored",
+              });
+
+              setOrder((prevOrder) => ({
+                ...prevOrder,
+                PAYMENT_STATUS: paymentStatus,
+              }));
+            } else {
+              toast(data.message, {
+                type: "error",
+                theme: "colored",
+              });
             }
-          );
-
-          const data = await response.json();
-
-          if (response.ok) {
-            toast(data.message, {
-              type: "success",
-              theme: "colored",
-            });
-
-            setOrder((prevOrder) => ({
-              ...prevOrder,
-              PAYMENT_STATUS: paymentStatus,
-            }));
-
-            if (paymentStatus == "REJECTED") {
-              handleUpdateOrder("CANCELED");
-            }
-          } else {
-            toast(data.message, {
+          } catch (error) {
+            toast("An error occurred while updating the payment.", {
               type: "error",
               theme: "colored",
             });
           }
-        } catch (error) {
-          toast("An error occurred while updating the payment.", {
-            type: "error",
-            theme: "colored",
-          });
         }
-      }
-    });
+      })
+      .then(() => {
+        reSet();
+        setPaymentStatus(paymentStatus);
+      });
   };
 
   return (

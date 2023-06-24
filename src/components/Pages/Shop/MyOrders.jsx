@@ -7,22 +7,26 @@ import Loader from "../../UI-elements/Loader";
 import { useParams } from "react-router-dom";
 import { Buffer } from "buffer";
 import {
+  CheckCircleIcon,
   DocumentArrowDownIcon,
+  NoSymbolIcon,
   PencilIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import OrderStatus from "./OrderStatus";
 
-export default function OrderList() {
+export default function MyOrders() {
   const { shopId } = useParams();
   const [orders, setOrders] = useState(null);
+  const [order, setOrder] = useState(null);
   const [orderDocuments, setOrderDocuments] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(false);
   const [reload, setReload] = useState(false);
+  const [cust_id] = useState(localStorage.getItem("CUST_ID"));
 
   useEffect(() => {
-    fetch(`http://localhost:3000/api/orders?shop_id=${shopId}`)
+    fetch(`http://localhost:3000/api/orders?cust_id=${cust_id}`)
       .then((res) => res.json())
       .then((data) => {
         setOrders(data);
@@ -49,38 +53,88 @@ export default function OrderList() {
       });
   }, [shopId, reload]);
 
-  const handleDelete = (orderId) => {
+  useEffect(() => {
+    if (order) {
+      handleUpdateOrder("DELIVERED");
+    }
+  }, [order]);
+
+  const handleClick = (data) => {
+    setOrder(data);
+  };
+  const handleUpdateOrder = (status) => {
     Swal.fire({
-      title: "Are you sure?",
-      text: "You won't be able to revert this!",
+      title: "Confirmation",
+      html: `<p className:"">Are you sure you want to update the <br> <span className:"bg-gray-400">Order: ${order.ORDER_ID}</span> to ${status}?</p>`,
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, delete it!",
+      confirmButtonText: "Update",
+      cancelButtonText: "Cancel",
     })
-      .then(async (result) => {
+      .then((result) => {
         if (result.isConfirmed) {
-          fetch(`http://localhost:3000/api/orders/${orderId}`, {
-            method: "DELETE",
-          }).then(async (response) => {
-            const result = await response.json();
-            if (response.status == 200) {
-              toast(result.message, {
-                type: "success",
+          console.log(order.PAYMENT_STATUS, status);
+          if (status == "PROCESSING" && order.PAYMENT_STATUS == "PENDING") {
+            toast(
+              "First update the payment status to update the order status to Processing!",
+              {
+                type: "warning",
                 theme: "colored",
+              }
+            );
+          } else if (
+            order.PAYMENT_STATUS == "REJECTED" &&
+            !order.ORDER_STATUS == "CANCELED"
+          ) {
+            toast("You can't update the status for rejected payment orders!", {
+              type: "warning",
+              theme: "colored",
+            });
+          } else {
+            fetch(
+              `http://localhost:3000/api/orders/update/${order?.ORDER_ID}`,
+              {
+                method: "PUT",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ orderStatus: status }),
+              }
+            )
+              .then((response) => {
+                console.log(response);
+                if (response.ok) {
+                  return response.json(); // Parse the response body as JSON
+                } else {
+                  throw new Error("Failed to update order status");
+                }
+              })
+              .then((data) => {
+                // Update the order status in the updatedOrder state
+                setOrders((prevOrder) =>
+                  prevOrder.filter((pOrder) => {
+                    if (pOrder.ORDER_ID === order.ORDER_ID) {
+                      return {
+                        ...pOrder,
+                        orderStatus: status,
+                      };
+                    } else return pOrder;
+                  })
+                );
+                // setOrders(data);
+                toast(`Order status updated to ${status}`, {
+                  type: "success",
+                  theme: "colored",
+                });
+              })
+              .catch((error) => {
+                // Handle any errors that occurred during the requestx
+                Swal.fire("Error", error.message, "error");
               });
-            } else {
-              toast(result.message, {
-                type: "error",
-                theme: "colored",
-              });
-            }
-            return result;
-          });
+          }
         }
       })
-      .then((data) => {
+      .then(() => {
         triggerRefresh();
       });
   };
@@ -100,7 +154,7 @@ export default function OrderList() {
           <div className="grid grid-cols-3 space-x-16">
             <div className="col-span-2">
               <div className="flex col-span-full justify-between">
-                <h1 className="text-3xl font-bold">Order List</h1>
+                <h1 className="text-3xl font-bold">My Order List</h1>
               </div>
               <div className="mt-10">
                 <ul className="flex flex-col gap-5">
@@ -109,9 +163,9 @@ export default function OrderList() {
                       No order found
                     </p>
                   )}
-                  {orders.map((order) => (
-                    <div className="border py-6 pl-8 flex gap-8 items-start hover:shadow-md transition-all cursor-pointer font-mono">
-                      <div className="">
+                  {orders?.map((order) => (
+                    <div className="border rounded-lg py-6 px-8 flex gap-8 items-start hover:shadow-md transition-all cursor-pointer font-mono">
+                      <div>
                         <h3 className="text-sm">Order ID</h3>
                         <div className="text-lg font-semibold">
                           {order.ORDER_ID}
@@ -131,7 +185,7 @@ export default function OrderList() {
                       </div>
                       <div className="">
                         <h3 className="text-sm">Order Date</h3>
-                        <div className="text-sm font-semibold flex flex-col">
+                        <div className="text-sm font-semibold mt-1 flex flex-col">
                           {new Date(order.ORDER_DATE).toLocaleString()}
                         </div>
                       </div>
@@ -142,9 +196,24 @@ export default function OrderList() {
                           {order.PAYMENT_STATUS}
                         </div>
                       </div>
+                      <div className="ml-4">
+                        <h3 className="text-sm">Delivery Time</h3>
+                        <div className="text-sm font-semibold">
+                          {order.ORDER_DELIVERY_TIME
+                            ? new Date(
+                                order.ORDER_DELIVERY_TIME
+                              ).toLocaleString()
+                            : "Not Delivered Yet"}
+                        </div>
+                      </div>
 
-                      <div className="flex gap-4 self-center">
-                        <div className="">
+                      <div className="flex gap-6 ml-auto self-center">
+                        {order.ORDER_STATUS.toUpperCase() === "COMPLETED" && (
+                          <div onClick={() => handleClick(order)}>
+                            <CheckCircleIcon className="w-8 h-8 text-green-600 hover:bg-green-600 hover:text-white rounded-full transition-all" />
+                          </div>
+                        )}
+                        <div className="self-center">
                           <a
                             download={`order_${order.ORDER_ID}.pdf`}
                             href={orderDocuments[order.ORDER_ID]}
@@ -154,27 +223,16 @@ export default function OrderList() {
                             {/* <span className="">Download</span> */}
                           </a>
                         </div>
-                        <div className="">
-                          <div
+                        {/* <div className=" self-center">
+                          <button
                             onClick={() => {
-                              setShowModal((prev) => !prev);
-                              setSelectedOrder(order);
+                              updatedOrder("CANCEL");
                             }}
-                            className="flex items-center gap-2 border-2 rounded-full border-blue-200  w-10 h-10  justify-center  text-blue-600"
+                            className="flex items-center gap-2 text-red-600"
                           >
-                            <PencilIcon className="h-6 w-6" />
-                            {/* <span className="">Download</span> */}
-                          </div>
-                        </div>
-                        <div className="">
-                          <div
-                            onClick={() => handleDelete(order.ORDER_ID)}
-                            className="flex items-center gap-2 border-2 rounded-full border-red-200  w-10 h-10  justify-center  text-red-600"
-                          >
-                            <TrashIcon className="h-6 w-6" />
-                            {/* <span className="">Download</span> */}
-                          </div>
-                        </div>
+                            <NoSymbolIcon className="h-8 w-8" />
+                          </button>
+                        </div> */}
                       </div>
                     </div>
                   ))}

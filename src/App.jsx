@@ -15,6 +15,7 @@ import EditShop from "./components/Pages/Shop/EditShop";
 import EditService from "./components/Pages/Shop/EditService";
 import OrderService from "./components/Pages/Shop/OrderService";
 import OrderList from "./components/Pages/Shop/OrderList";
+import MyOrders from "./components/Pages/Shop/MyOrders";
 
 function App() {
   return (
@@ -28,7 +29,6 @@ function App() {
 
         <Route path="/order-service/:serviceId" element={<OrderService />} />
 
-
         <Route path="/login" element={<Login />} />
         <Route path="/sign-up" element={<Signup />} />
 
@@ -38,6 +38,7 @@ function App() {
         <Route path="/shop-owner/shop/create" element={<CreateShop />} />
         <Route path="/shop-owner/shop/edit/:shopId" element={<EditShop />} />
         <Route path="/shop-owner/orders/:shopId" element={<OrderList />} />
+        <Route path="/orders/my-orders" element={<MyOrders />} />
         <Route
           path="/shop-owner/service/edit/:shopId"
           element={<EditService />}

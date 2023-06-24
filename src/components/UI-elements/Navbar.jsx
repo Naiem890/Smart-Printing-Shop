@@ -41,6 +41,15 @@ const Navbar = () => {
               </NavLink>
             </li>
             <li>
+              <NavLink
+                to="/orders/my-orders"
+                class="block py-2 pl-3 pr-4 text-gray-900 rounded md:bg-transparent hover:text-blue-700 md:p-0 md:dark:text-blue-500"
+                aria-current="page"
+              >
+                My Orders
+              </NavLink>
+            </li>
+            <li>
               <button
                 id="dropdownNavbarLink"
                 data-dropdown-toggle="dropdownNavbar"
