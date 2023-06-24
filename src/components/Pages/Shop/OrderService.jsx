@@ -118,9 +118,10 @@ export default function OrderService() {
         });
         // Handle success scenario
       } else {
-        console.error("Error placing order");
+        const data = await response.json();
+        console.error(data.message || "Error placing order");
         // Handle error scenario
-        toast("Error placing order!", {
+        toast(data.message || "Error placing order!", {
           type: "error",
           theme: "colored",
         });
