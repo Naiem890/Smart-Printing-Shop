@@ -480,7 +480,7 @@ app.post(
       console.log(req.body);
       const orderId = "O" + uuidv4().slice(0, 9);
       // Save the order data to the database
-      const queryString = `INSERT INTO orders (order_id, order_document, order_status, order_priority, order_amount, order_delivery_time, order_date, cust_id) VALUES (:orderId, :orderDocument, 'Queued', :orderPriority, :orderAmount, NULL, SYSDATE, :cust_id)`;
+      const queryString = `INSERT INTO orders (order_id, order_document, order_status, order_priority, order_amount, order_delivery_time, order_date, cust_id) VALUES (:orderId, :orderDocument, 'QUEUED', :orderPriority, :orderAmount, NULL, SYSDATE, :cust_id)`;
 
       const params = {
         orderId: orderId,
@@ -551,6 +551,7 @@ app.get("/api/orders/", async (req, res) => {
     join contains using(order_id)
     join provides using(service_id)
     join shop using(shop_id)
+    join payment using(order_id)
     where shop_id = '${shop_id}'`;
   }
 
@@ -564,8 +565,12 @@ app.get("/api/orders/", async (req, res) => {
 app.put("/api/orders/update/:orderId", async (req, res) => {
   const { orderId } = req.params;
   const { orderStatus } = req.body;
+  console.log("orderId", orderId, orderStatus);
+
   if (orderStatus) {
-    const queryString = `update orders set ORDER_STATUS = :orderStatus where order_id = :orderId `;
+    const queryString = `update orders 
+          set ORDER_STATUS = :orderStatus 
+          where order_id = :orderId `;
 
     const params = { orderStatus, orderId };
 
@@ -574,9 +579,33 @@ app.put("/api/orders/update/:orderId", async (req, res) => {
     );
 
     if (orderUpdated) {
-      res.status(200).send("Order updated successfully!");
+      res.status(200).send({ message: "Order updated successfully!" });
     } else {
-      res.status(404).send("Order not found!");
+      res.status(404).send({ message: "Order not found!" });
+    }
+  }
+});
+
+app.put("/api/payment/update/:paymentId", async (req, res) => {
+  const { paymentId } = req.params;
+  const { paymentStatus } = req.body;
+  console.log("paymentId", paymentId, paymentStatus);
+
+  if (paymentStatus) {
+    const queryString = `update payment 
+          set payment_status = :paymentStatus 
+          where PAYMENT_TRANSFER_ID = :paymentId`;
+
+    const params = { paymentStatus, paymentId };
+
+    const orderUpdated = await query(queryString, params).then((result) =>
+      result.rowsAffected == 1 ? true : false
+    );
+
+    if (orderUpdated) {
+      res.status(200).send({ message: "Order updated successfully!" });
+    } else {
+      res.status(404).send({ message: "Order not found!" });
     }
   }
 });
@@ -626,16 +655,31 @@ app.get("/api/orders/:orderId", async (req, res) => {
 
 app.delete("/api/orders/:orderId", async (req, res) => {
   try {
+    console.log("req.body", req.body);
     const { orderId } = req.params;
+    console.log(orderId);
+
+    const paymentId = await query(
+      "select PAYMENT_TRANSFER_ID from payment where order_id = :orderId",
+      { orderId }
+    ).then((data) => data.rows[0].PAYMENT_TRANSFER_ID);
+
+    console.log("paymentId", paymentId);
 
     const containsDeleted = await query(
       `DELETE FROM contains WHERE order_id = '${orderId}'`
     ).then((result) => (result.rowsAffected > 0 ? true : false));
 
     const orderDeleted = await query(
-      `DELETE FROM orders WHERE order_id = '${orderId}' AND ORDER_STATUS = 'Queued'`
+      `DELETE FROM orders WHERE order_id = '${orderId}' AND ORDER_STATUS = 'QUEUED'`
     ).then((result) => (result.rowsAffected > 0 ? true : false));
 
+    const updatePayment = await query(
+      `update payment 
+      set payment_status = :paymentStatus 
+      where PAYMENT_TRANSFER_ID = :paymentId`,
+      { paymentStatus: "CANCELED", paymentId }
+    );
     if (containsDeleted && orderDeleted) {
       res.status(200).send({ message: "Order deleted successfully" });
     } else {
