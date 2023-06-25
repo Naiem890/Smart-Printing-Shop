@@ -35,7 +35,7 @@ export default function ShopOwnerLogin() {
         localStorage.setItem("SHOP_OWNER_ID", result.SHOP_OWNER_ID);
         localStorage.setItem("SHOP_ID", result.SHOP_ID);
 
-        navigate("/search");
+        navigate("/shop-owner/dashboard");
       } else {
         const errorData = await response.json();
         console.error("Error:", errorData.error);

@@ -51,7 +51,7 @@ function App() {
     localStorage.clear();
     toast("Logout successful", {
       type: "success",
-      type: "coloured",
+      theme: "colored",
     });
   };
   return (
@@ -73,7 +73,9 @@ function App() {
 
         <Route
           path="/shop-owner/dashboard"
-          element={<DashboardShopOwner handleLogout={handleLogout} />}
+          element={
+            <DashboardShopOwner shopId={shopId} handleLogout={handleLogout} />
+          }
         >
           <Route index element={<OrderList />} />
           <Route path="create-shop" element={<CreateShop />} />

@@ -2,7 +2,7 @@ import { QueueListIcon } from "@heroicons/react/24/outline";
 import React from "react";
 import { Link, Outlet } from "react-router-dom";
 
-export default function DashboardShopOwner({ handleLogout }) {
+export default function DashboardShopOwner({ handleLogout, shopId }) {
   return (
     <div>
       <aside
@@ -19,39 +19,44 @@ export default function DashboardShopOwner({ handleLogout }) {
                 </span>
               </Link>
             </li>
-            <li>
-              <Link
-                to=""
-                class="flex my-2 items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
-              >
-                <span class="ml-3">Order List</span>
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="create-shop"
-                class="flex my-2 items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
-              >
-                <span class="ml-3">Create Shop</span>
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="edit-shop"
-                class="flex my-2 items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
-              >
-                <span class="ml-3">Edit Shop</span>
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="edit-service"
-                class="flex my-2 items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
-              >
-                <span class="ml-3">Edit Service</span>
-              </Link>
-            </li>
-            
+            {shopId ? (
+              <>
+                <li>
+                  <Link
+                    to=""
+                    class="flex my-2 items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
+                  >
+                    <span class="ml-3">Order List</span>
+                  </Link>
+                </li>
+
+                <li>
+                  <Link
+                    to="edit-shop"
+                    class="flex my-2 items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
+                  >
+                    <span class="ml-3">Edit Shop</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="edit-service"
+                    class="flex my-2 items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
+                  >
+                    <span class="ml-3">Edit Service</span>
+                  </Link>
+                </li>
+              </>
+            ) : (
+              <li>
+                <Link
+                  to="create-shop"
+                  class="flex my-2 items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
+                >
+                  <span class="ml-3">Create Shop</span>
+                </Link>
+              </li>
+            )}
           </ul>
         </div>
       </aside>
