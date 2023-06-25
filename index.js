@@ -432,6 +432,7 @@ app.delete("/api/service/delete/:serviceId", async (req, res) => {
   }
 });
 
+// Orders apis
 app.post(
   "/api/order/create",
   upload.single("orderDocument"),
@@ -567,30 +568,6 @@ app.put("/api/orders/update/:orderId", async (req, res) => {
   }
 });
 
-app.put("/api/payment/update/:paymentId", async (req, res) => {
-  const { paymentId } = req.params;
-  const { paymentStatus } = req.body;
-  console.log("paymentId", paymentId, paymentStatus);
-
-  if (paymentStatus) {
-    const queryString = `update payment 
-          set payment_status = :paymentStatus 
-          where PAYMENT_TRANSFER_ID = :paymentId`;
-
-    const params = { paymentStatus, paymentId };
-
-    const paymentUpdated = await query(queryString, params).then((result) =>
-      result.rowsAffected == 1 ? true : false
-    );
-
-    if (paymentUpdated) {
-      res.status(200).send({ message: "Payment updated successfully!" });
-    } else {
-      res.status(404).send({ message: "PaymentId not found!" });
-    }
-  }
-});
-
 app.get("/api/orders/:orderId", async (req, res) => {
   const { orderId } = req.params;
 
@@ -653,6 +630,32 @@ app.delete("/api/orders/:orderId", async (req, res) => {
   }
 });
 
+// Payment apis
+app.put("/api/payment/update/:paymentId", async (req, res) => {
+  const { paymentId } = req.params;
+  const { paymentStatus } = req.body;
+  console.log("paymentId", paymentId, paymentStatus);
+
+  if (paymentStatus) {
+    const queryString = `update payment 
+          set payment_status = :paymentStatus 
+          where PAYMENT_TRANSFER_ID = :paymentId`;
+
+    const params = { paymentStatus, paymentId };
+
+    const paymentUpdated = await query(queryString, params).then((result) =>
+      result.rowsAffected == 1 ? true : false
+    );
+
+    if (paymentUpdated) {
+      res.status(200).send({ message: "Payment updated successfully!" });
+    } else {
+      res.status(404).send({ message: "PaymentId not found!" });
+    }
+  }
+});
+
+// Authentication apis
 app.post("/api/auth/login/customer", async (req, res) => {
   const { email, password } = req.body;
   console.log(req.body);
