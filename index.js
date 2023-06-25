@@ -400,42 +400,6 @@ app.put("/api/service/update", async (req, res) => {
   }
 });
 
-// app.delete("/api/service/delete/:serviceId", async (req, res) => {
-//   const serviceId = req.params.serviceId;
-
-//   try {
-//     const deleteServiceResult = await query(
-//       `DELETE FROM service WHERE SERVICE_ID = :serviceId`,
-//       {
-//         serviceId,
-//       }
-//     );
-
-//     const deleteProvidesResult = await query(
-//       `DELETE FROM provides WHERE SERVICE_ID = :serviceId`,
-//       {
-//         serviceId,
-//       }
-//     );
-
-//     console.log("deleteServiceResult", deleteServiceResult);
-//     console.log("deleteProvidesResult", deleteProvidesResult);
-
-//     if (
-//       deleteServiceResult.rowsAffected > 0 ||
-//       deleteProvidesResult.rowsAffected > 0
-//     ) {
-//       res.status(200).send({ serviceDeleted: true });
-//     } else {
-//       res.status(404).send({ error: "Service not found." });
-//     }
-//   } catch (error) {
-//     console.error(error);
-//     res
-//       .status(500)
-//       .send({ error: "An error occurred while deleting the service." });
-//   }
-// });
 app.delete("/api/service/delete/:serviceId", async (req, res) => {
   const serviceId = req.params.serviceId;
 
@@ -638,38 +602,6 @@ app.get("/api/orders/:orderId", async (req, res) => {
   res.send(orderData);
 });
 
-// app.delete("/api/orders/:orderId", async (req, res) => {
-//   try {
-//     const { orderId } = req.params;
-
-//     console.log(orderId);
-
-//     const containsDeleted = await query(
-//       `DELETE FROM contains WHERE order_id = '${orderId}'`
-//     );
-
-//     console.log(containsDeleted);
-
-//     if (containsDeleted) {
-//       const orderDeleted = await query(
-//         `DELETE FROM orders WHERE order_id = '${orderId}'`
-//       );
-
-//       console.log(orderDeleted);
-//       if (orderDeleted) {
-//         res.status().send({ message: "Order deleted successfully" });
-//       } else {
-//         res.send({ message: "Error occurred during order delete" });
-//       }
-//     } else {
-//       res.send({ message: "Error occurred during order delete" });
-//     }
-//   } catch (error) {
-//     console.error("Error deleting order:", error);
-//     res.status(500).send({ error: "Failed to delete order" });
-//   }
-// });
-
 app.delete("/api/orders/:orderId", async (req, res) => {
   try {
     console.log("req.body", req.body);
@@ -718,31 +650,6 @@ app.delete("/api/orders/:orderId", async (req, res) => {
   } catch (error) {
     console.error("Error deleting order:", error);
     res.status(500).send({ error: "Failed to delete order" });
-  }
-});
-
-app.delete("/api/orders2/:orderId", async (req, res) => {
-  try {
-    const { orderId } = req.params;
-
-    const result = await query(
-      `BEGIN
-         :result := PRINTKORUN.delete_order(:orderId);
-       END;`,
-      {
-        result: { dir: OracleDB.BIND_OUT, type: OracleDB.STRING, maxSize: 200 },
-        orderId: orderId,
-      }
-    );
-
-    const message = result.outBinds.result;
-
-    res.status(200).send({ message: message });
-  } catch (error) {
-    console.error("Error deleting order:", error);
-    res
-      .status(500)
-      .send({ error: "Failed to delete order. Please try again later." });
   }
 });
 
