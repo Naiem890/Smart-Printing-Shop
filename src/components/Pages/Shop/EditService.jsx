@@ -9,8 +9,7 @@ import Swal from "sweetalert2";
 
 export default function EditService() {
   // service_name service_charge_per_unit estimated_time_in_min_required service_availability
-
-  const { shopId } = useParams();
+  const [shopId] = useState(localStorage.getItem("SHOP_ID"));
   const [shop, setShop] = useState(null);
   const [services, setServices] = useState(null);
   const [type, setType] = useState("");

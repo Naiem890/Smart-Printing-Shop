@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
+import { toast } from "react-toastify";
 
-const Navbar = () => {
+const Navbar = ({ role, handleLogout }) => {
   return (
     <nav class="bg-white border-gray-200 dark:bg-gray-900">
       <div class="max-w-screen-2xl flex flex-wrap items-center justify-between mx-auto p-4">
@@ -11,20 +12,54 @@ const Navbar = () => {
           </span>
         </Link>
         <div class="flex md:order-2 gap-6">
-          <Link
-            to="/login"
-            type="button"
-            class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-6 py-4 text-center mr-3 md:mr-0 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-          >
-            Login/Signup
-          </Link>
-          <Link
-            to="/shop-owner/login"
-            type="button"
-            class="text-white bg-blue-500 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-6 py-4 text-center mr-3 md:mr-0 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-          >
-            Shop Owner Login/SignUp
-          </Link>
+          {role == "SHOP_OWNER" ? (
+            <div className="flex items-center">
+              <Link
+                to="/shop-owner/dashboard"
+                className="px-4 py-4 flex items-center rounded-md font-bold font-mono hover:bg-slate-200 transition-all"
+              >
+                Shop Dashboard
+              </Link>
+              <Link
+                onClick={handleLogout}
+                className="px-4 py-4 text-red-500 flex items-center rounded-md font-bold font-mono hover:bg-slate-200 transition-all"
+              >
+                Logout
+              </Link>
+            </div>
+          ) : role == "CUSTOMER" ? (
+            <div className="flex items-center">
+              <Link
+                to="/customer/dashboard"
+                className="px-4 py-4 flex items-center rounded-md font-bold font-mono hover:bg-slate-200 transition-all"
+              >
+                Customer Dashboard
+              </Link>
+              <Link
+                onClick={handleLogout}
+                className="px-4 py-4 text-red-500 flex items-center rounded-md font-bold font-mono hover:bg-slate-200 transition-all"
+              >
+                Logout
+              </Link>
+            </div>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                type="button"
+                class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-6 py-4 text-center mr-3 md:mr-0 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+              >
+                Login/Signup
+              </Link>
+              <Link
+                to="/shop-owner/login"
+                type="button"
+                class="text-white bg-blue-500 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-6 py-4 text-center mr-3 md:mr-0 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+              >
+                Shop Owner Login/SignUp
+              </Link>
+            </>
+          )}
         </div>
         <div
           class="items-center justify-between hidden w-full md:flex md:w-auto md:order-1"
@@ -40,7 +75,7 @@ const Navbar = () => {
                 Home
               </NavLink>
             </li>
-            <li>
+            {/* <li>
               <NavLink
                 to="/orders/my-orders"
                 class="block py-2 pl-3 pr-4 text-gray-900 rounded md:bg-transparent hover:text-blue-700 md:p-0 md:dark:text-blue-500"
@@ -48,8 +83,8 @@ const Navbar = () => {
               >
                 My Orders
               </NavLink>
-            </li>
-            <li>
+            </li> */}
+            {/* <li>
               <button
                 id="dropdownNavbarLink"
                 data-dropdown-toggle="dropdownNavbar"
@@ -105,7 +140,7 @@ const Navbar = () => {
                   </li>
                 </ul>
               </div>
-            </li>
+            </li> */}
             <li>
               <a
                 href="#about"

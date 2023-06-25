@@ -148,8 +148,8 @@ export default function MyOrders() {
     <>
       <div className="max-w-[85%] mx-auto mt-10">
         <div>
-          <div className="grid grid-cols-3 space-x-16">
-            <div className="col-span-2">
+          <div className="grid grid-cols-12 space-x-16">
+            <div className="col-span-11">
               <div className="flex col-span-full justify-between">
                 <h1 className="text-3xl font-bold">My Order List</h1>
               </div>
@@ -242,9 +242,6 @@ export default function MyOrders() {
               ))} */}
                 </ul>
               </div>
-            </div>
-            <div className="col-span-1">
-              <InstructionCardShopOwner />
             </div>
           </div>
         </div>

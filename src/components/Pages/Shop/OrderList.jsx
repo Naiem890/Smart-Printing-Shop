@@ -14,7 +14,8 @@ import {
 import OrderStatus from "./OrderStatus";
 
 export default function OrderList() {
-  const { shopId } = useParams();
+  const [shopId] = useState(localStorage.getItem("SHOP_ID"));
+
   const [orders, setOrders] = useState(null);
   const [orderDocuments, setOrderDocuments] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -97,8 +98,8 @@ export default function OrderList() {
     <>
       <div className="max-w-[85%] mx-auto mt-10">
         <div>
-          <div className="grid grid-cols-3 space-x-16">
-            <div className="col-span-2">
+          <div className="grid grid-cols-12 space-x-16">
+            <div className="col-span-11">
               <div className="flex col-span-full justify-between">
                 <h1 className="text-3xl font-bold">Order List</h1>
               </div>
@@ -187,9 +188,6 @@ export default function OrderList() {
               ))} */}
                 </ul>
               </div>
-            </div>
-            <div className="col-span-1">
-              <InstructionCardShopOwner />
             </div>
           </div>
         </div>

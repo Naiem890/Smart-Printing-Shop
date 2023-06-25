@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, useNavigate } from "react-router-dom";
 import Home from "./components/Pages/Home/Home";
 import SearchService from "./components/Pages/Search-Shop/SearchService";
 
@@ -16,11 +16,47 @@ import EditService from "./components/Pages/Shop/EditService";
 import OrderService from "./components/Pages/Shop/OrderService";
 import OrderList from "./components/Pages/Shop/OrderList";
 import MyOrders from "./components/Pages/Shop/MyOrders";
+import { toast } from "react-toastify";
+import { useEffect, useState } from "react";
+import DashboardShopOwner from "./components/Pages/Shop/DashboardShopOwner";
+import DashboardCustomer from "./components/Pages/Shop/DashboardCustomer";
 
 function App() {
+  const [reload, setReload] = useState(false);
+  const [role, setRole] = useState("");
+  const [shopId, setShopId] = useState("");
+  const navigate = useNavigate();
+
+  const recheck = () => {
+    const data =
+      localStorage.getItem("CUST_ID") || localStorage.getItem("SHOP_OWNER_ID");
+
+    setRole(
+      data?.includes("SW")
+        ? "SHOP_OWNER"
+        : data?.includes("CS")
+        ? "CUSTOMER"
+        : ""
+    );
+
+    setShopId(localStorage.getItem("SHOP_ID"));
+  };
+
+  useEffect(() => {
+    recheck();
+  }, [reload]);
+
+  const handleLogout = () => {
+    navigate("../..");
+    localStorage.clear();
+    toast("Logout successful", {
+      type: "success",
+      type: "coloured",
+    });
+  };
   return (
-    <div>
-      <Navbar />
+    <div onClick={() => setReload((prev) => !prev)}>
+      <Navbar handleLogout={handleLogout} role={role} />
       <Routes>
         {/* <Route path="/" element={<SideBar />} /> */}
         <Route path="/" element={<Home />} />
@@ -35,9 +71,25 @@ function App() {
         <Route path="/shop-owner/login" element={<ShopOwnerLogin />} />
         <Route path="/shop-owner/sign-up" element={<ShopOwnerSignUp />} />
 
+        <Route
+          path="/shop-owner/dashboard"
+          element={<DashboardShopOwner handleLogout={handleLogout} />}
+        >
+          <Route index element={<OrderList />} />
+          <Route path="create-shop" element={<CreateShop />} />
+          <Route path="edit-shop" element={<EditShop />} />
+          <Route path="edit-service" element={<EditService />} />
+        </Route>
+        <Route
+          path="/customer/dashboard"
+          element={<DashboardCustomer handleLogout={handleLogout} />}
+        >
+          <Route index element={<MyOrders />} />
+        </Route>
+
         <Route path="/shop-owner/shop/create" element={<CreateShop />} />
-        <Route path="/shop-owner/shop/edit/:shopId" element={<EditShop />} />
-        <Route path="/shop-owner/orders/:shopId" element={<OrderList />} />
+        <Route path="/shop-owner/shop/edit/" element={<EditShop />} />
+        <Route path="/shop-owner/orders" element={<OrderList />} />
         <Route path="/orders/my-orders" element={<MyOrders />} />
         <Route
           path="/shop-owner/service/edit/:shopId"

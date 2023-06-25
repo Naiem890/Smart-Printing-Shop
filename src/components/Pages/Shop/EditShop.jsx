@@ -7,7 +7,8 @@ import { Buffer } from "buffer";
 import Loader from "../../UI-elements/Loader";
 
 export default function EditShop() {
-  const { shopId } = useParams();
+  const [shopId] = useState(localStorage.getItem("SHOP_ID"));
+
   const [shop, setShop] = useState(null);
   const [name, setName] = useState("");
   const [district, setDistrict] = useState("");
@@ -122,14 +123,6 @@ export default function EditShop() {
                   <h1 className="text-3xl font-bold">Edit Shop</h1>
                 </div>
                 <div>
-                  <button
-                    onClick={() => {
-                      navigator(`/shop-owner/service/edit/${shop.SHOP_ID}`);
-                    }}
-                    class="inline-flex justify-center h-12 w-full text-center sm:w-auto items-center text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 sm:ml-3"
-                  >
-                    Edit Shop Service
-                  </button>
                   <button
                     type="submit"
                     class="inline-flex justify-center h-12 w-full text-center sm:w-auto items-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 sm:ml-3"
