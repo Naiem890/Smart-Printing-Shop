@@ -400,35 +400,66 @@ app.put("/api/service/update", async (req, res) => {
   }
 });
 
+// app.delete("/api/service/delete/:serviceId", async (req, res) => {
+//   const serviceId = req.params.serviceId;
+
+//   try {
+//     const deleteServiceResult = await query(
+//       `DELETE FROM service WHERE SERVICE_ID = :serviceId`,
+//       {
+//         serviceId,
+//       }
+//     );
+
+//     const deleteProvidesResult = await query(
+//       `DELETE FROM provides WHERE SERVICE_ID = :serviceId`,
+//       {
+//         serviceId,
+//       }
+//     );
+
+//     console.log("deleteServiceResult", deleteServiceResult);
+//     console.log("deleteProvidesResult", deleteProvidesResult);
+
+//     if (
+//       deleteServiceResult.rowsAffected > 0 ||
+//       deleteProvidesResult.rowsAffected > 0
+//     ) {
+//       res.status(200).send({ serviceDeleted: true });
+//     } else {
+//       res.status(404).send({ error: "Service not found." });
+//     }
+//   } catch (error) {
+//     console.error(error);
+//     res
+//       .status(500)
+//       .send({ error: "An error occurred while deleting the service." });
+//   }
+// });
 app.delete("/api/service/delete/:serviceId", async (req, res) => {
   const serviceId = req.params.serviceId;
 
   try {
-    const deleteServiceResult = await query(
-      `DELETE FROM service WHERE SERVICE_ID = :serviceId`,
+    const result = await query(
+      `BEGIN
+       deleteService(:serviceId);
+     END;`,
       {
         serviceId,
       }
     );
+    console.log("result", result);
 
-    const deleteProvidesResult = await query(
-      `DELETE FROM provides WHERE SERVICE_ID = :serviceId`,
-      {
-        serviceId,
-      }
-    );
+    // if (
+    //   deleteServiceResult.rowsAffected > 0 ||
+    //   deleteProvidesResult.rowsAffected > 0
+    // ) {
+    //   res.status(200).send({ serviceDeleted: true });
+    // } else {
+    //   res.status(404).send({ error: "Service not found." });
+    // }
 
-    console.log("deleteServiceResult", deleteServiceResult);
-    console.log("deleteProvidesResult", deleteProvidesResult);
-
-    if (
-      deleteServiceResult.rowsAffected > 0 ||
-      deleteProvidesResult.rowsAffected > 0
-    ) {
-      res.status(200).send({ serviceDeleted: true });
-    } else {
-      res.status(404).send({ error: "Service not found." });
-    }
+    res.status(200).send({ serviceDeleted: true });
   } catch (error) {
     console.error(error);
     res
@@ -466,8 +497,8 @@ app.post(
       };
 
       // Execute the query with the provided parameters
-      const orderInserted = await query(queryString, params).then((result) =>
-        result.rowsAffected == 1 ? true : false
+      const orderInserted = await query(queryString, params).then(
+        (result) => result.rowsAffected == 1
       );
 
       if (orderInserted) {
@@ -509,26 +540,27 @@ app.post(
       }
     } catch (error) {
       console.error("Error placing order:", error);
-      res.status(500).json({ message: "Error placing order" });
+      res.status(500).json({
+        message: "Error placing order or wrong time for placing order",
+      });
     }
   }
 );
 
 app.get("/api/orders/", async (req, res) => {
   try {
-    const { cust_id, shop_id } = req.query;
+    const { cust_id, shop_id, status } = req.query;
 
     let queryString;
 
     if (cust_id) {
-      queryString = `select * from orders join payment using(order_id) where cust_id = '${cust_id}'`;
+      queryString = `SELECT * FROM PROCESSING_ORDERS_VIEWS where cust_id = '${cust_id}'`;
     } else if (shop_id) {
-      queryString = `select * from orders
-      join contains using(order_id)
-      join provides using(service_id)
-      join shop using(shop_id)
-      join payment using(order_id)
-      where shop_id = '${shop_id}'`;
+      queryString = `SELECT * FROM PROCESSING_ORDERS_VIEWS where shop_id = '${shop_id}'`;
+    }
+
+    if (status) {
+      queryString += `and order_status = '${status}'`;
     }
 
     console.log("cust_id queryString", cust_id, queryString);
